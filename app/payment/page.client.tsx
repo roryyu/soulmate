@@ -40,8 +40,8 @@ const MEMBERSHIP_FEATURES = [
   '文献检索支持',
   '文献速读与问答',
   '文献综述框架梳理',
-  '科研写作支持',
-  '科研润色与表达优化',
+  '数字疗愈写作支持',
+  '数字疗愈润色与表达优化',
 ] as const;
 
 export default function PaymentClientPage({
@@ -118,18 +118,18 @@ export default function PaymentClientPage({
       <div className="max-w-5xl mx-auto text-center mb-12">
         <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-amber-400 text-sm font-medium mb-6">
           <Crown className="w-4 h-4" />
-          研灵犀 · 会员中心
+          Soulmate · 会员中心
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-          解锁科研支持全流程
+          解锁数字疗愈支持全流程
         </h1>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-          从教学真实问题出发，逐步完成选题构思，文献检索，要点提炼，综述梳理，写作与优化六个科研流程全环节
+          从教学真实问题出发，逐步完成选题构思，文献检索，要点提炼，综述梳理，写作与优化六个数字疗愈流程全环节
         </p>
 
         {/* 当前状态栏 */}
         {(membershipStatus || creditBalance > 0) && (
-          <div className="mt-6 inline-flex items-center gap-4 bg-slate-800/60 border border-slate-700 rounded-xl px-5 py-3 text-sm">
+          <div className="mt-6 inline-flex items-center gap-4 bg-slate-800/60 border border-slate-700 rounded-xl px-5 py-3 text-sm" style={{ display: 'none' }}>
             {membershipStatus ? (
               <div className="flex items-center gap-2 text-emerald-400">
                 <Crown className="w-4 h-4" />
@@ -349,7 +349,7 @@ export default function PaymentClientPage({
       {/* 中文注释：产品说明与免责，置于套餐与充值区块之后 */}
       {products.length > 0 && (
         <p className="max-w-3xl mx-auto text-center text-slate-500 text-sm leading-relaxed px-4">
-          研灵犀用于中小学教师的课题研究梳理与表达支持，最终内容请结合教学实际，由教师本人审阅、修改与定稿
+          Soulmate用于中小学教师的课题研究梳理与表达支持，最终内容请结合教学实际，由教师本人审阅、修改与定稿
         </p>
       )}
 

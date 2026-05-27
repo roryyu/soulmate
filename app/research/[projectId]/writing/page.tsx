@@ -521,11 +521,11 @@ export default function WritingPage() {
     }
   }
 
-  // 一键导入到科研润色（论文润色模块）
+  // 一键导入到数字疗愈润色（论文润色模块）
   const handleExportToPolishing = async () => {
     // 检查是否有写作内容
     if (writings.length === 0 || !writings.some(w => w.content)) {
-      alert('请先生成科研写作内容后再导入科研润色')
+      alert('请先生成数字疗愈写作内容后再导入数字疗愈润色')
       return
     }
 
@@ -625,7 +625,7 @@ export default function WritingPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <FileText className="text-teal-600" size={28} />
-            科研写作
+            数字疗愈写作
           </h1>
           <p className="text-slate-500 mt-1">
             围绕课题申报核心内容，逐步梳理课题研究思路与表达
@@ -642,7 +642,7 @@ export default function WritingPage() {
             ) : (
               <ArrowRight size={16} />
             )}
-            导入科研润色
+            导入数字疗愈润色
           </button>
           <span className="text-xs text-slate-400">将已梳理内容汇总进入润色整理</span>
         </div>

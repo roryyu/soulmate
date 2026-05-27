@@ -11,7 +11,7 @@ async function main() {
     data: [
       {
         name: '月度会员',
-        description: '解锁研灵犀全部功能30天',
+        description: '解锁Soulmate全部功能30天',
         price: 99.0,
         originalPrice: null,
         type: 'MEMBERSHIP',
@@ -21,7 +21,7 @@ async function main() {
       },
       {
         name: '季度会员',
-        description: '解锁研灵犀全部功能90天，立省77元',
+        description: '解锁Soulmate全部功能90天，立省77元',
         price: 199.0,
         originalPrice: 99 * 3,
         type: 'MEMBERSHIP',
@@ -31,7 +31,7 @@ async function main() {
       },
       {
         name: '年度会员',
-        description: '解锁研灵犀全部功能365天，立省689元',
+        description: '解锁Soulmate全部功能365天，立省689元',
         price: 499.0,
         originalPrice: 99 * 12,
         type: 'MEMBERSHIP',

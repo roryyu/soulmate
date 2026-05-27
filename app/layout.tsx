@@ -7,8 +7,8 @@ import FeedbackButton from '@/components/feedback/FeedbackButton'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '研灵犀 - 教育科研项目管理平台',
-  description: '研灵犀是一款专为教师和学生设计的教育科研项目管理平台，帮助管理从创意到写作的全流程。',
+  title: 'Soulmate - 教育数字疗愈项目管理平台',
+  description: 'Soulmate是一款专为教师和学生设计的教育数字疗愈项目管理平台，帮助管理从创意到写作的全流程。',
 }
 
 export default function RootLayout({

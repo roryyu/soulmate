@@ -114,7 +114,7 @@ model User {
   tenant    Tenant?    @relation(fields: [tenantId], references: [id])
   directoryUserRoles DirectoryUserRole[]
 
-  // 研灵犀模块的数据
+  // Soulmate模块的数据
   researchProjects ResearchProject[]
 
   // 支付模块的数据
@@ -177,7 +177,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ========== 模块 1: 研灵犀 (Research Pro) ==========
+// ========== 模块 1: Soulmate (Research Pro) ==========
 
 // 课题项目表
 model ResearchProject {
@@ -187,6 +187,10 @@ model ResearchProject {
   field       String   // 学科领域 (如：小学数学)
   description String?  // 初始构思
   status      String   @default("DRAFT") // DRAFT, COMPLETED
+  prompt      String?  @db.Text // 音乐生成提示词
+  sampleRate  Int      @default(44100) // 采样率
+  bitrate     Int      @default(256000) // 比特率
+  format      String   @default("mp3") // 音频格式
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -200,6 +204,7 @@ model ResearchProject {
   writings    ResearchWriting[]
   papers      ResearchPaper[]
   outlines    ResearchOutline[]
+  musicCovers MusicCoverResource[]
 }
 
 model ResearchIdea {
@@ -340,6 +345,17 @@ model ResearchOutline {
   updatedAt  DateTime @updatedAt
 
   project    ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// 音乐封面资源表
+model MusicCoverResource {
+  id               String   @id @default(cuid())
+  researchProjectId String?
+  url              String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  researchProject  ResearchProject? @relation(fields: [researchProjectId], references: [id], onDelete: Cascade)
 }
 
 // ========== AI 对话记录模块 ==========

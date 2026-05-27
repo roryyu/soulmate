@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EduNexus (研灵犀) is a Next.js 14 full-stack application for educational research project management. It helps teachers and students manage research projects through multiple stages: ideation, literature search, document analysis, writing, and paper polishing.
+EduNexus (Soulmate) is a Next.js 14 full-stack application for educational research project management. It helps teachers and students manage research projects through multiple stages: ideation, literature search, document analysis, writing, and paper polishing.
 
 **Core Features**:
 - **Research Workflow**: Ideation → Search (CNKI) → Reading/Analysis → Writing → Paper Polishing

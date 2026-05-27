@@ -19,7 +19,7 @@ async function main() {
     },
     {
       name: '季度会员',
-      description: '90天会员，推荐长期科研项目使用',
+      description: '90天会员，推荐长期数字疗愈项目使用',
       price: 299,
       // 中文注释：原价按「月度×3 天」折算，便于前台划线展示
       originalPrice: 126 * 3,

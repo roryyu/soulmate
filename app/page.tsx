@@ -182,7 +182,7 @@ function HeroSection() {
             <motion.div variants={fadeInUp} className="mb-6">
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-sky-700 text-sm font-medium">
                 <Zap className="w-4 h-4" />
-                教育界的 Vibe Coding 工具
+                数字疗愈工具
               </span>
             </motion.div>
             
@@ -190,10 +190,10 @@ function HeroSection() {
               variants={fadeInUp}
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6"
             >
-              研灵犀：让科研念头
+              Soulmate
               <br />   
               <span className="bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent">
-                起念即成形
+                疗愈全人类
               </span>
             </motion.h1>
             
@@ -201,9 +201,7 @@ function HeroSection() {
               variants={fadeInUp}
               className="text-lg text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0"
             >
-              教育界的 Vibe Coding 工具。
-              <br />
-              告别科研焦虑，我们助您将模糊的教学感悟，转化为确定的学术成果。
+              全流程数字疗愈
             </motion.p>
             
             <motion.div 
@@ -220,7 +218,7 @@ function HeroSection() {
                       size="lg"
                       className="rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 shadow-lg shadow-sky-200"
                     >
-                      进入控制台
+                      开启我的灵犀瞬间
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                   </Link>
@@ -289,14 +287,14 @@ function ProcessSection() {
     },
     {
       icon: Database,
-      title: '科研写作',
+      title: '数字疗愈写作',
       subtitle: 'WRITING',
       desc: '辅助撰写论文，提供结构建议',
       color: 'from-pink-400 to-rose-500'
     },
     {
       icon: Sparkles,
-      title: '科研润色',
+      title: '数字疗愈润色',
       subtitle: 'POLISHING',
       desc: '智能润色优化，提升论文质量',
       color: 'from-cyan-400 to-sky-500'
@@ -317,9 +315,9 @@ function ProcessSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-            六大核心功能，覆盖科研全流程
+            六大核心功能，覆盖数字疗愈全流程
           </h2>
-          <p className="text-slate-500 text-lg">从灵感到成果，一站式智能科研助手</p>
+          <p className="text-slate-500 text-lg">从灵感到成果，一站式智能数字疗愈助手</p>
         </motion.div>
         
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
@@ -398,7 +396,7 @@ function CTASection() {
                   size="lg"
                   className="rounded-full bg-white text-slate-900 hover:bg-slate-100 px-8 shadow-xl"
                 >
-                  进入控制台
+                  马上体验"灵犀一点"
                   <Sparkles className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
@@ -426,6 +424,7 @@ function ConsultationGroupFab() {
   return (
     <>
       <motion.button
+        style={{ display: 'none' }}
         type="button"
         onClick={() => setOpen(true)}
         className="fixed z-40 right-3 sm:right-5 bottom-28 md:bottom-auto md:top-1/2 md:-translate-y-1/2 flex flex-col items-center gap-1.5 rounded-2xl border border-sky-200/80 bg-white/95 px-3 py-3 shadow-lg shadow-sky-100/80 backdrop-blur-sm text-sky-700 hover:bg-sky-50 hover:border-sky-300 transition-colors"

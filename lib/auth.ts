@@ -155,7 +155,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
   },
   callbacks: {
-    // 登录成功后的默认落地页：科研仪表盘（退出登录时跳转到首页）
+    // 登录成功后的默认落地页：数字疗愈仪表盘（退出登录时跳转到首页）
     async redirect({ url, baseUrl }) {
       const dashboard = `${baseUrl}/research/dashboard`
       // 退出登录时跳转到首页

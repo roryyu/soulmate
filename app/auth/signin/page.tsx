@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 type LoginTab = 'email' | 'phone'
 
 export default function SignIn() {
-  const [activeTab, setActiveTab] = useState<LoginTab>('phone')
+  const [activeTab, setActiveTab] = useState<LoginTab>('email')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [phone, setPhone] = useState('')
@@ -157,7 +157,7 @@ export default function SignIn() {
               className="flex justify-center mb-4"
             >
               {/* 使用 next/image 优化 LCP（替代 img） */}
-              <Image src="/logo.jpg" alt="研灵犀" width={80} height={80} className="w-20 h-20 object-contain" priority />
+              <Image src="/logo.jpg" alt="Soulmate" width={80} height={80} className="w-20 h-20 object-contain" priority />
             </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
@@ -173,13 +173,14 @@ export default function SignIn() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="mt-2 text-sky-600/80"
             >
-              登录到研灵犀平台
+              登录到Soulmate平台
             </motion.p>
           </div>
 
           {/* Tab 切换 */}
-          <div className="flex mb-6 bg-sky-50 rounded-xl p-1">
+          <div className="flex mb-6 bg-sky-50 rounded-xl p-1" style={{display: 'none'}}>
             <button
+              
               type="button"
               onClick={() => {
                 setActiveTab('phone')
@@ -290,7 +291,7 @@ export default function SignIn() {
                   ) : '登录'}
                 </Button>
 
-                <div className="text-center text-sm text-sky-600/80">
+                <div className="text-center text-sm text-sky-600/80" style={{ display: 'none' }}>
                   还没有账号？{' '}
                   <Link href="/auth/register" className="text-sky-600 font-medium hover:underline">
                     立即注册
@@ -367,9 +368,9 @@ export default function SignIn() {
                   ) : '登录'}
                 </Button>
 
-                <div className="text-center text-sm text-sky-600/80">
+                <div className="text-center text-sm text-sky-600/80" style={{ display: 'none' }}>
                   还没有账号？{' '}
-                  <Link href="/auth/register" className="text-sky-600 font-medium hover:underline">
+                  <Link href="/auth/register" className="text-sky-600 font-medium hover:underline" >
                     立即注册
                   </Link>
                 </div>

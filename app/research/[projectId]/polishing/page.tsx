@@ -369,12 +369,12 @@ export default function PolishingPage() {
           </div>
         </div>
 
-        {/* 右侧：科研润色助手 */}
+        {/* 右侧：数字疗愈润色助手 */}
         <div className="w-96 border-l border-slate-200 bg-slate-50 overflow-auto">
           <div className="p-4">
             <h3 className="text-lg font-medium text-slate-800 mb-4 flex items-center gap-2">
               <FileText size={16} />
-              科研润色助手
+              数字疗愈润色助手
             </h3>
 
             {/* 处理中的状态 */}

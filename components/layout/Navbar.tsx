@@ -73,10 +73,10 @@ function Navbar({ currentPath }: { currentPath?: string }) {
           >
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               {/* 使用 next/image 优化 LCP（替代 img） */}
-              <Image src="/logo.jpg" alt="研灵犀" width={40} height={40} className="w-10 h-10 object-contain" priority />
+              <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
-                <h1 className="text-lg font-bold text-slate-900">研灵犀</h1>
-                <p className="text-xs text-slate-500">科研全流程管理</p>
+                <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
+                <p className="text-xs text-slate-500">数字疗愈全流程管理</p>
               </div>
             </Link>
           </motion.div>
@@ -132,6 +132,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                       {/* 菜单项 */}
                       <div className="py-2">
                         <Link
+                          style={{ display: 'none' }}
                           href="/dashboard/settings"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -144,6 +145,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
 
                         {/* 会员、积分与支付入口 */}
                         <Link
+                          style={{ display: 'none' }}
                           href="/dashboard/membership"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
@@ -154,6 +156,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                           会员与积分
                         </Link>
                         <Link
+                          style={{ display: 'none' }}
                           href="/payment"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors"
@@ -164,6 +167,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                           套餐与充值
                         </Link>
                         <Link
+                          style={{ display: 'none' }}
                           href="/dashboard/orders"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -176,6 +180,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
 
                         {/* 我的反馈入口 */}
                         <Link
+                          style={{ display: 'none' }}
                           href="/dashboard/feedback"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
@@ -199,6 +204,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                         {session?.user?.role === 'TENANTADMIN' && (
                         <>
                           <Link
+                            style={{ display: 'none' }}
                             href="/auth/tenant-admin/dashboard"
                             onClick={() => setDropdownOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -214,6 +220,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                         {session?.user?.role === 'ADMIN' && (
                         <>
                           <Link
+                            style={{ display: 'none' }}
                             href="/auth/admin/dashboard"
                             onClick={() => setDropdownOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -248,6 +255,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
             ) : (
               <div className="flex items-center gap-2">
                 <Button
+                  style={{ display: 'none' }}
                   variant="ghost"
                   size="sm"
                   className="text-slate-600 hover:text-amber-700 hover:bg-amber-50"

@@ -105,6 +105,7 @@ export default function FeedbackButton({ children, onClick }: FeedbackButtonProp
   return (
     <>
       <button
+        style={{ display: 'none' }}
         onClick={handleClick}
         className="fixed bottom-6 right-6 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white p-3 rounded-full shadow-lg shadow-sky-200 transition-all z-40"
         aria-label="提交反馈"

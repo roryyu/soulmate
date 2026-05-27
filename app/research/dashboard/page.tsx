@@ -168,7 +168,7 @@ function QuickActions() {
     },
     {
       icon: Database,
-      title: '科研写作',
+      title: '数字疗愈写作',
       subtitle: 'WRITING',
       desc: '辅助撰写论文，提供结构建议',
       color: 'from-pink-400 to-rose-500',
@@ -176,7 +176,7 @@ function QuickActions() {
     },
     {
       icon: Sparkles,
-      title: '科研润色',
+      title: '数字疗愈润色',
       subtitle: 'POLISHING',
       desc: '智能润色优化，提升论文质量',
       color: 'from-cyan-400 to-sky-500',
@@ -506,16 +506,17 @@ export default function ResearchDashboard() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               {/* 使用 next/image 优化 LCP（替代 img） */}
-              <Image src="/logo.jpg" alt="研灵犀" width={40} height={40} className="w-10 h-10 object-contain" priority />
+              <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
-                <h1 className="text-lg font-bold text-slate-900">研灵犀</h1>
-                <p className="text-xs text-slate-500">科研全流程管理</p>
+                <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
+                <p className="text-xs text-slate-500">数字疗愈全流程管理</p>
               </div>
             </Link>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3" >
               {/* 会员与充值入口：展示剩余天数与积分（与套餐页顶部状态栏一致） */}
               <Link
+                style={{ display: 'none' }}
                 href="/payment"
                 className="hidden sm:inline-flex items-stretch rounded-lg border border-amber-200 bg-amber-50/80 hover:bg-amber-100 shadow-sm text-sm font-medium transition-colors overflow-hidden"
               >
@@ -546,7 +547,7 @@ export default function ResearchDashboard() {
                 className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-sm"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                新建课题
+                新建处方
               </Button>
               
               {/* 用户头像下拉框 */}
@@ -580,6 +581,7 @@ export default function ResearchDashboard() {
                     {/* 菜单项 */}
                     <div className="py-2">
                       <Link
+                        style={{ display: 'none' }}
                         href="/dashboard/settings"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -591,6 +593,7 @@ export default function ResearchDashboard() {
                       </Link>
 
                       <Link
+                        style={{ display: 'none' }}
                         href="/dashboard/membership"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
@@ -601,6 +604,7 @@ export default function ResearchDashboard() {
                         会员与积分
                       </Link>
                       <Link
+                        style={{ display: 'none' }}
                         href="/payment"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors"
@@ -611,6 +615,7 @@ export default function ResearchDashboard() {
                         套餐与充值
                       </Link>
                       <Link
+                        style={{ display: 'none' }}
                         href="/dashboard/orders"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -623,6 +628,7 @@ export default function ResearchDashboard() {
 
                       {/* 我的反馈入口 */}
                       <Link
+                        style={{ display: 'none' }}
                         href="/dashboard/feedback"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
@@ -647,6 +653,7 @@ export default function ResearchDashboard() {
                         {session?.user?.role === 'TENANTADMIN' && (
                         <>
                           <Link
+                            style={{ display: 'none' }}
                             href="/auth/tenant-admin/dashboard"
                             onClick={() => setDropdownOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -662,6 +669,7 @@ export default function ResearchDashboard() {
                       {session?.user?.role === 'ADMIN' && (
                         <>
                           <Link
+                            style={{ display: 'none' }}
                             href="/auth/admin/dashboard"
                             onClick={() => setDropdownOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
@@ -798,7 +806,7 @@ export default function ResearchDashboard() {
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-[slate-800]">新建课题</h2>
+                <h2 className="text-xl font-semibold text-[slate-800]">新建处方</h2>
                 <button
                   onClick={() => setIsDialogOpen(false)}
                   className="text-[slate-400] hover:text-[slate-800] transition-colors"
