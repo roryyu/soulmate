@@ -1,0 +1,588 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // 禁用预编译语句缓存，解决无服务器环境问题
+  // 格式: ?schema=public&connection_limit=1&pool_timeout=10&preparedStatementCacheSize=0
+}
+
+// ========== 租户相关模型 ==========
+
+model TenantProduct {
+  id          String   @id @default(cuid())
+  name        String?
+  userLimit   Int?
+  creditLimit Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenants Tenant[]
+}
+
+model Tenant {
+  id        String     @id @default(cuid())
+  name      String?
+  productId String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  product   TenantProduct? @relation(fields: [productId], references: [id])
+  users     User[]
+  directories Directory[]
+}
+
+// ========== 目录与权限相关模型 ==========
+
+model Directory {
+  id          String   @id @default(cuid())
+  name        String?
+  parentId    String?
+  description String?
+  tenantId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant    Tenant?    @relation(fields: [tenantId], references: [id])
+  parent    Directory? @relation("DirectoryParent", fields: [parentId], references: [id])
+  children  Directory[] @relation("DirectoryParent")
+  directoryUserRoles DirectoryUserRole[]
+  documents  Document[]
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String?
+  permission  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  directoryUserRoles DirectoryUserRole[]
+}
+
+model DirectoryUserRole {
+  id          String   @id @default(cuid())
+  directoryId String?
+  userId      String?
+  roleId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  directory   Directory? @relation(fields: [directoryId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id])
+  role        Role?      @relation(fields: [roleId], references: [id])
+
+  // 添加复合唯一键，确保一个用户在一个目录下只能有一个角色
+  @@unique([directoryId, userId], name: "DirectoryUserRole_directoryId_userId_key")
+}
+
+// ========== 文档管理相关模型 ==========
+
+model Document {
+  id                String   @id @default(cuid())
+  fileName          String?
+  fileType          String?  // pdf, docx, txt
+  content           String?  @db.Text // 提取的文本内容
+  fileData          String?  // TOS 文件路径
+  status            String   @default("pending") // pending, processed, failed
+  directoryId       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  directory    Directory?       @relation(fields: [directoryId], references: [id])
+  researchDocuments ResearchDocument[]
+}
+
+// ========== 认证相关模型 ==========
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  phone     String?    @unique
+  password  String
+  name      String?
+  role      String     @default("TEACHER") // TEACHER, ADMIN
+  tenantId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  accounts  Account[]
+  sessions Session[]
+  tenant    Tenant?    @relation(fields: [tenantId], references: [id])
+  directoryUserRoles DirectoryUserRole[]
+
+  // 研灵犀模块的数据
+  researchProjects ResearchProject[]
+
+  // 支付模块的数据
+  orders           Order[]
+  memberships      UserMembership[]
+  credit           UserCredit?
+  creditTransactions CreditTransaction[]
+
+  // 问题反馈模块的数据
+  feedbacks        Feedback[]
+  feedbackReplies  FeedbackReply[]
+}
+
+// 短信验证码表
+model SmsCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String   // 6位验证码
+  type      String   @default("LOGIN") // LOGIN, REGISTER, BIND
+  used      Boolean  @default(false)
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone, type])
+  @@index([phone, code])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ========== 模块 1: 研灵犀 (Research Pro) ==========
+
+// 课题项目表
+model ResearchProject {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String   // 课题名称
+  field       String   // 学科领域 (如：小学数学)
+  description String?  // 初始构思
+  status      String   @default("DRAFT") // DRAFT, COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 子功能数据
+  ideas       ResearchIdea[]
+  searches    ResearchSearch[]
+  references  ResearchReference[]
+  documents   ResearchDocument[]
+  writings    ResearchWriting[]
+  papers      ResearchPaper[]
+  outlines    ResearchOutline[]
+}
+
+model ResearchIdea {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  rationale   String   @db.Text
+  isAdopted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  project     ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ResearchSearch {
+  id            String   @id @default(cuid())
+  projectId     String
+  userTopic     String
+  cnkiQuery     String
+  createdAt     DateTime @default(now())
+
+  project       ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ResearchReference {
+  id               String   @id @default(cuid())
+  projectId        String
+  fileName         String
+  summary          String   @db.Text
+  innovationPoints String   @db.Text
+  methodology      String?  @db.Text
+  keyPages         String?
+  createdAt        DateTime @default(now())
+
+  project          ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ========== 文献速读模块 ==========
+
+// 上传的文档
+model ResearchDocument {
+  id                String   @id @default(cuid())
+  projectId         String
+  documentId        String?
+  embeddingStatus   String   @default("pending")  // pending, processing, processing_chunks, completed, failed
+  embeddingProgress Int      @default(0)          // 进度 0-100
+  embeddingError    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   ResearchProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  document  Document?         @relation(fields: [documentId], references: [id])
+  analyses  DocumentAnalysis[]
+  chats     DocumentChat[]
+  chunks    DocumentChunk[]
+
+  @@index([projectId, createdAt])
+}
+
+// 文档分块（存储向量）
+model DocumentChunk {
+  id          String   @id @default(cuid())
+  documentId  String
+  chunkIndex  Int      // 分块序号
+  content     String   // 文本片段
+  embedding   Float[]  // 向量
+  tokenCount  Int?
+  createdAt   DateTime @default(now())
+
+  document    ResearchDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+// 文档分析结果
+model DocumentAnalysis {
+  id          String   @id @default(cuid())
+  documentId  String
+  prompt      String   @db.Text // 使用的提示词
+  content     String   @db.Text // AI 返回的完整 Markdown 内容
+  createdAt   DateTime @default(now())
+
+  document    ResearchDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+// 文档问答记录
+model DocumentChat {
+  id         String   @id @default(cuid())
+  documentId String
+  question   String   @db.Text
+  answer     String   @db.Text
+  createdAt  DateTime @default(now())
+
+  document   ResearchDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+// ========== 研究写作模块 ==========
+
+// 研究写作内容
+model ResearchWriting {
+  id          String   @id @default(cuid())
+  projectId   String
+  type        String   // value(研究价值), objective(研究目标), content(研究内容), innovation(创新点)
+  content     String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, type])
+}
+
+// ========== 论文润色模块 ==========
+
+// 论文内容
+model ResearchPaper {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  title     String?
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ========== 文献综述大纲模块 ==========
+
+// 文献综述大纲
+model ResearchOutline {
+  id         String   @id @default(cuid())
+  projectId  String
+  title      String
+  content    String   @db.Text  // Markdown 格式内容
+  sourceDocs String   @db.Text  // JSON: [{ docId, fileName }]
+  status     String   @default("draft") // draft, published
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project    ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ========== AI 对话记录模块 ==========
+
+// AI 对话记录
+model AIConversation {
+  id          String   @id @default(cuid())
+  userId      String?  // 如果用户登录了，记录用户ID
+  userName    String?  // 用户名（冗余存储，用户改名后仍可查看历史）
+  module      String   // 调用模块名称，如 "选题生成"、"文献分析" 等
+  model       String   // 使用的模型
+  prompt      String   @db.Text // 用户输入的提示词
+  response    String?  @db.Text // AI 回复内容
+  tokens      Int?     // 消耗的 token 数量
+  duration    Int?     // 请求耗时（毫秒）
+  error       String?  @db.Text // 错误信息（如果有）
+  metadata    String?  @db.Text // 额外元数据（JSON格式）
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([userName])
+  @@index([module])
+  @@index([createdAt])
+}
+
+// ========== 支付相关模型 ==========
+
+// 产品/套餐表
+model Product {
+  id          String   @id @default(cuid())
+  name        String   // 产品名称，如 "月度会员"、"季度会员"、"年度会员"
+  description   String?  @db.Text // 产品描述
+  price         Decimal  @db.Decimal(10, 2) // 早鸟价/实付价，单位元
+  originalPrice Decimal? @db.Decimal(10, 2) // 原价（划线展示），为空则不显示
+  currency    String   @default("CNY") // 货币类型
+  type        String   // 产品类型：MEMBERSHIP（会员）、CREDIT_PACKAGE（积分包）、SINGLE_PURCHASE（单次购买）
+  duration    Int?     // 有效期（天），会员套餐使用
+  credits     Int?     // 赠送积分数量，CREDIT_PACKAGE 类型使用
+  isActive    Boolean  @default(true) // 是否上架
+  sortOrder   Int      @default(0) // 排序
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+  memberships UserMembership[]
+}
+
+// 订单表
+model Order {
+  id              String   @id @default(cuid())
+  userId          String?  // 用户ID，游客可为空
+  productId       String?  // 产品ID
+  outTradeNo      String   @unique // 商户订单号
+  tradeNo         String?  // 支付宝交易号
+  subject         String   // 订单标题
+  body            String?  @db.Text // 订单描述
+  totalAmount     Decimal  @db.Decimal(10, 2) // 订单总金额
+  currency        String   @default("CNY") // 货币类型
+  status          String   @default("PENDING") // 订单状态：PENDING（待支付）、PAID（已支付）、CANCELLED（已取消）、REFUNDED（已退款）
+  payMethod       String?  // 支付方式：ALIPAY
+  paidAt          DateTime? // 支付时间
+  expiredAt       DateTime? // 订单过期时间
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  paymentRecords  PaymentRecord[]
+
+  @@index([userId])
+  @@index([outTradeNo])
+  @@index([tradeNo])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// 支付记录表
+model PaymentRecord {
+  id              String   @id @default(cuid())
+  orderId         String   // 订单ID
+  outTradeNo      String   // 商户订单号
+  tradeNo         String?  // 支付宝交易号
+  tradeStatus     String?  // 交易状态：WAIT_BUYER_PAY、TRADE_CLOSED、TRADE_SUCCESS、TRADE_FINISHED
+  totalAmount     Decimal  @db.Decimal(10, 2) // 订单金额
+  receiptAmount   Decimal? @db.Decimal(10, 2) // 实收金额
+  buyerPayAmount  Decimal? @db.Decimal(10, 2) // 付款金额
+  buyerId         String?  // 买家支付宝用户号
+  buyerLogonId    String?  // 买家支付宝账号
+  gmtCreate       DateTime? // 交易创建时间
+  gmtPayment      DateTime? // 交易付款时间
+  notifyId        String?  // 通知校验ID
+  notifyTime      DateTime? // 通知时间
+  rawNotifyData   String?  @db.Text // 原始通知数据（JSON格式）
+  createdAt       DateTime @default(now())
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([outTradeNo])
+  @@index([tradeNo])
+  @@index([tradeStatus])
+}
+
+// ========== 会员与积分模型 ==========
+
+// 用户会员记录（支持历史记录，当前有效记录通过 status=ACTIVE 查询）
+model UserMembership {
+  id        String   @id @default(cuid())
+  userId    String   // 用户ID
+  productId String?  // 购买的会员产品
+  orderId   String?  // 对应的订单ID
+  startAt   DateTime // 会员开始时间
+  endAt     DateTime // 会员到期时间
+  status    String   @default("ACTIVE") // ACTIVE（有效）、EXPIRED（已过期）、CANCELLED（已取消）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([endAt])
+}
+
+// 用户积分钱包（每用户唯一）
+model UserCredit {
+  id        String   @id @default(cuid())
+  userId    String   @unique // 每位用户唯一
+  balance   Int      @default(0) // 当前积分余额
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 积分流水记录
+model CreditTransaction {
+  id            String   @id @default(cuid())
+  userId        String
+  amount        Int      // 正数=入账，负数=消耗
+  type          String   // PURCHASE（购买）、CONSUME（消耗）、REFUND（退款）、ADMIN_ADJUST（管理员调整）
+  description   String?  // 流水说明
+  orderId       String?  // 关联订单ID（购买时有值）
+  operationType String?  // 操作类型（消耗时有值，如 IDEATION/SEARCH 等）
+  balanceAfter  Int      // 操作后余额（便于对账）
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type])
+}
+
+// AI 操作积分消耗配置（管理员可动态调整）
+model AIOperationConfig {
+  id            String   @id @default(cuid())
+  operationType String   @unique // IDEATION…OUTLINE 为单次消耗；OCR_UPLOAD 表示每100页一档的单价
+  creditCost    Int      @default(10) // 单次调用消耗；OCR_UPLOAD 时为每档（100页）消耗
+  description   String?  // 操作描述，如 "选题生成"
+  isActive      Boolean  @default(true) // 是否启用（false 时该操作不消耗积分）
+  updatedAt     DateTime @updatedAt
+}
+
+// 系统级可配置参数（键值存储，便于后续扩展更多项）
+model SystemSetting {
+  key       String   @id // 如 NEW_USER_GIFT_CREDITS
+  value     String   @db.Text // 存字符串，数值类由业务层解析校验
+  updatedAt DateTime @updatedAt
+}
+
+// ========== 问题反馈模块 ==========
+
+// 问题类型表
+model FeedbackType {
+  id          String   @id @default(cuid())
+  name        String   // 问题类型名称，如 "功能建议"、"Bug 反馈"、"使用问题"
+  description String?  // 类型描述
+  sortOrder   Int      @default(0) // 排序
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  feedbacks   Feedback[]
+}
+
+// 问题反馈表
+model Feedback {
+  id           String            @id @default(cuid())
+  userId       String?           // 用户ID，游客可为空
+  userName     String?           // 用户名（冗余存储）
+  userEmail    String?           // 用户邮箱
+  userPhone    String?           // 用户电话
+  typeId       String            // 问题类型ID
+  title        String            // 问题标题
+  description  String            @db.Text // 问题描述
+  status       String            @default("PENDING") // 状态：PENDING（待处理）、PROCESSING（处理中）、COMPLETED（已完成）、CLOSED（已关闭）
+  priority     String            @default("NORMAL") // 优先级：LOW（低）、NORMAL（中）、HIGH（高）
+  assignedTo   String?           // 分配给哪个管理员
+  attachments  String?           @db.Text // 附件路径（JSON格式，如 ["path1", "path2"]）
+  resolvedAt   DateTime?         // 解决时间
+  closedAt     DateTime?         // 关闭时间
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user         User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type         FeedbackType      @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  replies      FeedbackReply[]
+  statusHistory FeedbackStatus[]
+
+  @@index([userId])
+  @@index([typeId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+// 反馈回复表
+model FeedbackReply {
+  id         String   @id @default(cuid())
+  feedbackId String   // 反馈ID
+  userId     String   // 回复人ID
+  userName   String   // 回复人姓名（冗余存储）
+  content    String   @db.Text // 回复内容
+  isAdmin    Boolean  @default(false) // 是否管理员回复
+  createdAt  DateTime @default(now())
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([feedbackId])
+  @@index([userId])
+}
+
+// 反馈状态历史表
+model FeedbackStatus {
+  id         String   @id @default(cuid())
+  feedbackId String   // 反馈ID
+  oldStatus  String   // 旧状态
+  newStatus  String   // 新状态
+  changedBy  String?  // 操作人ID
+  changedAt  DateTime @default(now())
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@index([feedbackId])
+  @@index([changedAt])
+}

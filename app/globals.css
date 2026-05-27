@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* 现代学术风格配色方案 */
+  :root {
+    /* 背景色 - 柔和的米白色 */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 18%;
+
+    /* 卡片背景 */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 18%;
+
+    /* 弹窗背景 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 18%;
+
+    /* 主色 - 深青色 */
+    --primary: 200 45% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    /* 次要色 - 柔和灰蓝 */
+    --secondary: 210 15% 94%;
+    --secondary-foreground: 215 20% 25%;
+
+    /* muted - 柔和灰 */
+    --muted: 210 10% 94%;
+    --muted-foreground: 210 8% 45%;
+
+    /* 强调色 - 琥珀色 */
+    --accent: 25 85% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    /* destructive - 柔和红色 */
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* 边框 */
+    --border: 210 12% 85%;
+    --input: 210 12% 85%;
+    --ring: 200 45% 32%;
+
+    /* 圆角 */
+    --radius: 0.75rem;
+
+    /* 扩展色板 */
+    --success: 160 50% 40%;
+    --warning: 35 80% 50%;
+    --info: 200 50% 50%;
+  }
+
+  .dark {
+    --background: 215 30% 10%;
+    --foreground: 210 15% 95%;
+    --card: 215 25% 14%;
+    --card-foreground: 210 15% 95%;
+    --popover: 215 25% 14%;
+    --popover-foreground: 210 15% 95%;
+    --primary: 190 55% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 20% 18%;
+    --secondary-foreground: 210 15% 90%;
+    --muted: 215 18% 16%;
+    --muted-foreground: 210 8% 55%;
+    --accent: 25 85% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 55% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 15% 25%;
+    --input: 215 15% 25%;
+    --ring: 190 55% 45%;
+    --success: 160 45% 45%;
+    --warning: 35 75% 50%;
+    --info: 200 45% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* 平滑滚动 */
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-teal-300/50 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-teal-400/70;
+  }
+}
+
+/* 玻璃态效果 */
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+  }
+  
+  .glass-dark {
+    @apply bg-[#2a2218]/80 backdrop-blur-lg;
+    background: rgba(42, 34, 24, 0.8);
+    backdrop-filter: blur(12px);
+  }
+  
+  /* 渐变文字 */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  }
+  
+  /* 发光效果 */
+  .glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  
+  .glow-accent {
+    box-shadow: 0 0 20px hsl(var(--accent) / 0.3);
+  }
+  
+  /* 柔和阴影 - 现代学术风格 */
+  .shadow-soft {
+    box-shadow: 0 4px 20px -2px rgba(30, 58, 95, 0.08);
+  }
+
+  .shadow-card {
+    box-shadow: 0 2px 8px -2px rgba(30, 58, 95, 0.06),
+                0 4px 16px -4px rgba(30, 58, 95, 0.04);
+  }
+  
+  /* 边框发光 */
+  .border-glow {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2),
+                0 0 20px -5px hsl(var(--primary) / 0.15);
+  }
+  
+  /* 禁用文字选择时的样式 */
+  .no-select {
+    user-select: none;
+  }
+}
+
+/* 自定义动画 */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+
+/* 动画延迟工具类 */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
