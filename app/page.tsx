@@ -213,12 +213,12 @@ function HeroSection() {
                 whileTap={{ scale: 0.95 }}
               >
                 {session ? (
-                  <Link href="/research/dashboard">
+                  <Link href="/music">
                     <Button 
                       size="lg"
                       className="rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 shadow-lg shadow-sky-200"
                     >
-                      开启我的灵犀瞬间
+                      进入控制台
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                   </Link>
@@ -226,9 +226,9 @@ function HeroSection() {
                   <Button 
                     size="lg"
                     className="rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 shadow-lg shadow-sky-200"
-                    onClick={() => signIn(undefined, { callbackUrl: '/research/dashboard' })}
+                    onClick={() => signIn(undefined, { callbackUrl: '/music' })}
                   >
-                    开启我的灵犀瞬间
+                    进入控制台
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 )}

@@ -347,15 +347,34 @@ model ResearchOutline {
   project    ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
+// 音乐母带预处理表
+model MusicCover {
+  id                String   @id @default(cuid())
+  name              String?
+  coverFeatureId    String?
+  structureResult   String?  @db.Text
+  base64data        String?  @db.Text
+  audioDuration     Int?
+  audioFilePath     String?  // TOS 上的音频文件路径
+  audioFileUrl      String?  // 音频文件访问 URL
+  status            String   @default("pending") // pending, processing, completed, failed
+  error             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  musicCoverResources MusicCoverResource[]
+}
+
 // 音乐封面资源表
 model MusicCoverResource {
   id               String   @id @default(cuid())
   researchProjectId String?
-  url              String?
+  musicCoverId     String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   researchProject  ResearchProject? @relation(fields: [researchProjectId], references: [id], onDelete: Cascade)
+  musicCover       MusicCover? @relation(fields: [musicCoverId], references: [id], onDelete: Cascade)
 }
 
 // ========== AI 对话记录模块 ==========

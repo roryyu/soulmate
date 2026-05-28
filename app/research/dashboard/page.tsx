@@ -638,16 +638,25 @@ export default function ResearchDashboard() {
                         </div>
                         我的反馈
                       </Link>
-
                       <Link
-                        href="/research/dashboard"
+                        href="/music-covers"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
                       >
                         <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
                           <User className="w-4 h-4 text-sky-600" />
                         </div>
-                        控制台
+                        母带管理
+                      </Link>
+                      <Link
+                        href="/music"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-sky-600" />
+                        </div>
+                        处方管理
                       </Link>
                       {/* 租户管理员导航菜单 */}
                         {session?.user?.role === 'TENANTADMIN' && (

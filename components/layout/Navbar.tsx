@@ -92,7 +92,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
               <div className="text-sm text-slate-400">加载中...</div>
             ) : session ? (
               <div className="flex items-center gap-3">
-                <Link href="/research/dashboard">
+                <Link href="/music">
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all"
@@ -191,14 +191,24 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                           我的反馈
                         </Link>
                       <Link
-                        href="/research/dashboard"
+                        href="/music-covers"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
                       >
                         <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
                           <User className="w-4 h-4 text-sky-600" />
                         </div>
-                        控制台
+                        母带管理
+                      </Link>
+                      <Link
+                        href="/music"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-sky-600" />
+                        </div>
+                        处方管理
                       </Link>
                       {/* 租户管理员导航菜单 */}
                         {session?.user?.role === 'TENANTADMIN' && (
@@ -267,7 +277,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                 <Button 
                   variant="outline" 
                   className="rounded-full border-sky-200 text-sky-600 hover:bg-sky-500 hover:text-white hover:border-sky-500 transition-colors"
-                  onClick={() => signIn(undefined, { callbackUrl: '/research/dashboard' })}
+                  onClick={() => signIn(undefined, { callbackUrl: '/music' })}
                 >
                   登录
                 </Button>
