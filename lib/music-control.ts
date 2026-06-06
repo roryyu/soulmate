@@ -39,6 +39,8 @@ export interface MusicFileConfig {
   startTime?: number;     // 截取开始时间（秒），默认为 0
   endTime?: number;       // 截取结束时间（秒），默认到文件结尾
   insertTime: number;     // 在最终音轨中的插入开始时间（秒）
+  repeatInterval?: number; // 循环间隔（秒），设置后会每隔指定秒数重复插入，直到曲目结束
+  isBackground?: boolean;  // 是否为背景曲（贯穿整个音乐，音量较低）
 }
 
 /**
@@ -80,13 +82,14 @@ async function getAudioDuration(filePath: string): Promise<number> {
 }
 
 /**
- * 截取单个音频文件
+ * 截取单个音频文件（支持音量控制）
  */
 async function trimAudio(
   inputPath: string,
   outputPath: string,
   startTime: number = 0,
-  endTime?: number
+  endTime?: number,
+  volume: number = 1.0
 ): Promise<string> {
   if (!ffmpeg) {
     throw new Error('fluent-ffmpeg 未安装');
@@ -106,10 +109,76 @@ async function trimAudio(
       command.setDuration(duration);
     }
 
+    // 如果音量不是1，添加音量滤镜
+    if (volume !== 1.0) {
+      command.audioFilters(`volume=${volume}`);
+    }
+
     command
       .on('end', () => resolve(outputPath))
       .on('error', (err: any) => reject(err))
       .run();
+  });
+}
+
+/**
+ * 混音：将背景曲与其他片段混合
+ * 背景曲作为底层，其他片段叠加在上面
+ */
+async function mixAudioWithBackground(
+  segmentFiles: string[],
+  outputPath: string,
+  tempDir: string
+): Promise<string> {
+  if (!ffmpeg) {
+    throw new Error('fluent-ffmpeg 未安装');
+  }
+
+  if (segmentFiles.length < 2) {
+    // 如果只有一个文件，直接复制
+    return segmentFiles[0];
+  }
+
+  return new Promise((resolve, reject) => {
+    // 第一个文件是背景曲，其余是叠加的片段
+    const backgroundFile = segmentFiles[0];
+    const overlayFiles = segmentFiles.slice(1);
+
+    // 先将所有非背景文件拼接在一起
+    const tempOverlayPath = join(tempDir, `overlay-${uuidv4()}.mp3`);
+    
+    if (overlayFiles.length === 0) {
+      // 只有背景曲，直接返回
+      return resolve(backgroundFile);
+    }
+
+    // 拼接叠加片段
+    const concatCommand = ffmpeg();
+    overlayFiles.forEach(file => {
+      concatCommand.input(file);
+    });
+    
+    concatCommand
+      .on('end', () => {
+        // 混音：背景曲 + 叠加片段
+        const mixCommand = ffmpeg()
+          .input(backgroundFile)
+          .input(tempOverlayPath)
+          .complexFilter([
+            '[0:a]volume=0.3[bg]',  // 背景曲音量降低
+            '[1:a]volume=1.0[fg]',  // 叠加片段保持原音量
+            '[bg][fg]amix=inputs=2:duration=longest[out]'  // 混音
+          ])
+          .outputOptions(['-map', '[out]'])
+          .output(outputPath);
+
+        mixCommand
+          .on('end', () => resolve(outputPath))
+          .on('error', (err: any) => reject(err))
+          .run();
+      })
+      .on('error', (err: any) => reject(err))
+      .mergeToFile(tempOverlayPath, tempDir);
   });
 }
 
@@ -209,6 +278,7 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
       actualStartTime: number;
       actualEndTime: number;
       duration: number;
+      clipDuration: number; // 原始截取时长（用于循环计算）
     }> = [];
 
     let maxEndTime = 0;
@@ -240,7 +310,13 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
       }
 
       const clipDuration = actualEndTime - actualStartTime;
-      const fileEndTime = config.insertTime + clipDuration;
+      
+      // 计算最大结束时间（考虑循环）
+      let fileEndTime = config.insertTime + clipDuration;
+      if (config.repeatInterval && config.repeatInterval > 0) {
+        // 对于循环文件，预计会持续到请求的总时长
+        fileEndTime = requestDuration || (config.insertTime + clipDuration * 3); // 默认循环3次
+      }
 
       if (fileEndTime > maxEndTime) {
         maxEndTime = fileEndTime;
@@ -252,6 +328,7 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
         actualStartTime,
         actualEndTime: Math.min(actualEndTime, fileDuration),
         duration: clipDuration,
+        clipDuration: clipDuration,
       });
     }
 
@@ -267,8 +344,9 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
     console.log(`最终时长: ${finalDuration}s`);
     console.log('==================================\n');
 
-    // 2. 按插入时间排序
-    const sortedFiles = [...processedFiles].sort((a, b) => a.config.insertTime - b.config.insertTime);
+    // 2. 分离背景曲和普通素材
+    const backgroundFiles = processedFiles.filter(f => f.config.isBackground);
+    const normalFiles = processedFiles.filter(f => !f.config.isBackground);
 
     // 3. 生成时间轴上的片段列表
     let currentTime = 0;
@@ -278,30 +356,77 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
       duration: number;
       filePath?: string;
       audioConfig?: typeof processedFiles[0];
+      volume?: number; // 音量系数（背景曲较低）
     }> = [];
 
-    for (const file of sortedFiles) {
-      // 检查是否有间隙需要填充沉默
-      if (file.config.insertTime > currentTime) {
-        const silenceDuration = file.config.insertTime - currentTime;
-        timelineSegments.push({
-          type: 'silence',
-          startTime: currentTime,
-          duration: silenceDuration,
-        });
-        currentTime = file.config.insertTime;
-      }
-
-      // 添加音频片段
+    // 处理背景曲（贯穿整个音乐）
+    for (const bgFile of backgroundFiles) {
       timelineSegments.push({
         type: 'audio',
-        startTime: file.config.insertTime,
-        duration: file.duration,
-        filePath: file.tempFilePath,
-        audioConfig: file,
+        startTime: 0,
+        duration: finalDuration,
+        filePath: bgFile.tempFilePath,
+        audioConfig: bgFile,
+        volume: 0.3, // 背景曲音量较低
       });
+    }
 
-      currentTime = file.config.insertTime + file.duration;
+    // 按插入时间排序普通素材
+    const sortedNormalFiles = [...normalFiles].sort((a, b) => a.config.insertTime - b.config.insertTime);
+
+    // 处理普通素材（包括循环插入）
+    for (const file of sortedNormalFiles) {
+      const repeatInterval = file.config.repeatInterval;
+      
+      if (repeatInterval && repeatInterval > 0) {
+        // 循环插入模式：从 insertTime 开始，每隔 repeatInterval 秒插入一次
+        let currentInsertTime = file.config.insertTime;
+        while (currentInsertTime + file.clipDuration <= finalDuration) {
+          // 检查是否有间隙需要填充沉默
+          if (currentInsertTime > currentTime) {
+            const silenceDuration = currentInsertTime - currentTime;
+            timelineSegments.push({
+              type: 'silence',
+              startTime: currentTime,
+              duration: silenceDuration,
+            });
+          }
+          
+          timelineSegments.push({
+            type: 'audio',
+            startTime: currentInsertTime,
+            duration: file.clipDuration,
+            filePath: file.tempFilePath,
+            audioConfig: file,
+            volume: 1.0,
+          });
+          
+          currentInsertTime += repeatInterval;
+        }
+        currentTime = Math.max(currentTime, currentInsertTime - repeatInterval + file.clipDuration);
+      } else {
+        // 单次插入模式
+        // 检查是否有间隙需要填充沉默
+        if (file.config.insertTime > currentTime) {
+          const silenceDuration = file.config.insertTime - currentTime;
+          timelineSegments.push({
+            type: 'silence',
+            startTime: currentTime,
+            duration: silenceDuration,
+          });
+        }
+
+        timelineSegments.push({
+          type: 'audio',
+          startTime: file.config.insertTime,
+          duration: file.duration,
+          filePath: file.tempFilePath,
+          audioConfig: file,
+          volume: 1.0,
+        });
+
+        currentTime = file.config.insertTime + file.duration;
+      }
     }
 
     // 最后添加沉默到指定总时长
@@ -313,7 +438,7 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
       });
     }
 
-    // 4. 处理所有片段（截取音频或生成沉默）
+    // 4. 处理所有片段（截取音频或生成沉默，支持音量控制）
     const segmentFiles: string[] = [];
 
     for (let i = 0; i < timelineSegments.length; i++) {
@@ -328,16 +453,27 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
           segment.audioConfig.tempFilePath,
           outputPath,
           segment.audioConfig.actualStartTime,
-          segment.audioConfig.actualEndTime
+          segment.audioConfig.actualEndTime,
+          segment.volume
         );
       }
 
       segmentFiles.push(outputPath);
     }
 
-    // 5. 拼接所有片段
+    // 5. 混音并拼接所有片段
     const finalOutputPath = join(tempDir, `merged-${uuidv4()}.mp3`);
-    await concatenateAudios(segmentFiles, finalOutputPath);
+    
+    // 检查是否有背景曲需要混音
+    const hasBackground = timelineSegments.some(s => s.type === 'audio' && s.volume && s.volume < 1);
+    
+    if (hasBackground) {
+      // 使用 ffmpeg 混音：背景曲 + 其他片段
+      await mixAudioWithBackground(segmentFiles, finalOutputPath, tempDir);
+    } else {
+      // 普通拼接
+      await concatenateAudios(segmentFiles, finalOutputPath);
+    }
 
     // 6. 将最终文件转换为 base64
     const { readFileSync } = require('fs');

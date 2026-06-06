@@ -159,7 +159,7 @@ preprocessResult = await preprocessMusicCover({
 
 #### 5. 类型安全问题
 
-**`app/music/new/page.tsx` 第 27 行**：
+**`app/admin/music/new/page.tsx` 第 27 行**：
 ```typescript
 type MusicCover = {
   id: string;
@@ -321,7 +321,7 @@ model ResearchProject {
 | `lib/music-control.ts` | 音频处理（截取/拼接） | ⚠️ 需添加清理逻辑 |
 | `app/api/music/route.ts` | 音乐项目 CRUD | ⚠️ 需保存生成结果 |
 | `app/api/music-covers/route.ts` | 音乐母带管理 | ⚠️ 参数命名问题 |
-| `app/music/new/page.tsx` | 新建音乐项目页面 | ✅ 良好 |
+| `app/admin/music/new/page.tsx` | 新建音乐项目页面 | ✅ 良好 |
 | `app/music/[id]/edit/page.tsx` | 编辑音乐项目页面 | 需要确认 |
 | `prisma/schema.prisma` | 数据库设计 | ⚠️ 需补充字段 |
 

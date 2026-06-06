@@ -67,7 +67,7 @@ async function fetchMusicCovers(): Promise<{ data: MusicCover[] }> {
   return res.json()
 }
 
-// 创建音乐处方
+// 创建音乐素材
 async function createMusicProject(data: {
   userId: string
   title: string
@@ -80,12 +80,12 @@ async function createMusicProject(data: {
   format?: string
   musicCoverIds?: string[]
 }): Promise<any> {
-  const res = await fetch('/api/music', {
+  const res = await fetch('/api/admin/music', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error('创建音乐处方失败')
+  if (!res.ok) throw new Error('创建音乐素材失败')
   return res.json()
 }
 
@@ -119,8 +119,8 @@ export default function NewMusicProjectPage() {
   useEffect(() => {
     const loadMusicCovers = async () => {
       try {
-        const data = await fetchMusicCovers()
-        setMusicCovers(data.data)
+        //const data = await fetchMusicCovers()
+        //setMusicCovers(data.data)
       } catch (error) {
         console.error('Failed to load music covers:', error)
       } finally {
@@ -169,7 +169,7 @@ export default function NewMusicProjectPage() {
         musicCoverIds: formData.musicCoverId ? [formData.musicCoverId] : [],
       })
 
-      router.push(`/music/${newProject.id}`)
+      router.push(`/admin/music/${newProject.id}`)
     } catch (error) {
       console.error('Failed to create music project:', error)
       alert(error instanceof Error ? error.message : '创建失败，请稍后重试')
@@ -201,7 +201,7 @@ export default function NewMusicProjectPage() {
               <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
                 <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
-                <p className="text-xs text-slate-500">新建音乐处方</p>
+                <p className="text-xs text-slate-500">新建音乐素材</p>
               </div>
             </Link>
           </div>
@@ -229,8 +229,8 @@ export default function NewMusicProjectPage() {
               <Plus className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">新建音乐处方</h1>
-              <p className="text-sm text-slate-500">填写信息创建新的音乐处方</p>
+              <h1 className="text-2xl font-bold text-slate-900">新建音乐素材</h1>
+              <p className="text-sm text-slate-500">填写信息创建新的音乐素材</p>
             </div>
           </div>
         </div>
@@ -285,7 +285,7 @@ export default function NewMusicProjectPage() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => updateForm('description', e.target.value)}
-                  placeholder="描述一下这个音乐处方的内容和目标..."
+                  placeholder="描述一下这个音乐素材的内容和目标..."
                   rows={4}
                   disabled={isSubmitting}
                   className="border-slate-200"
@@ -294,62 +294,7 @@ export default function NewMusicProjectPage() {
             </CardContent>
           </Card>
 
-          {/* 选择音乐母带 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Music className="w-5 h-5 text-cyan-500" />
-                选择音乐母带
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isLoading ? (
-                <div className="text-center py-8 text-slate-500">
-                  加载中...
-                </div>
-              ) : musicCovers.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  暂无音乐母带
-                  <div className="mt-4">
-                    <Button
-                      variant="ghost"
-                      onClick={() => router.push('/music-covers/new')}
-                      className="text-cyan-600 hover:text-cyan-700"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      上传新母带
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                <Label htmlFor="musicCoverId" className="text-slate-800">
-                  音乐母带
-                </Label>
-                <Select
-                  value={formData.musicCoverId}
-                  onValueChange={(value) => updateForm('musicCoverId', value)}
-                >
-                  <SelectTrigger disabled={isSubmitting} className="border-slate-200">
-                    <SelectValue placeholder="请选择一个音乐母带" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {musicCovers.map((cover) => (
-                      <SelectItem key={cover.id} value={cover.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{cover.name || '未命名'}</span>
-                          <span className="text-xs text-slate-400">
-                            ({formatDuration(cover.audioDuration)})
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              )}
-            </CardContent>
-          </Card>
+
 
           {/* 音频设置 */}
           <Card>
@@ -462,7 +407,7 @@ export default function NewMusicProjectPage() {
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  创建处方
+                  生成音乐
                 </>
               )}
             </Button>

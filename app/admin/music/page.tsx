@@ -71,13 +71,13 @@ async function fetchMusicProjects(page = 1, pageSize = 20): Promise<{
   data: ResearchProject[]
   pagination: PaginationInfo
 }> {
-  const res = await fetch(`/api/music?page=${page}&pageSize=${pageSize}`)
+  const res = await fetch(`/api/admin/music?page=${page}&pageSize=${pageSize}`)
   if (!res.ok) throw new Error('获取音乐项目列表失败')
   return res.json()
 }
 
 async function deleteMusicProject(id: string): Promise<void> {
-  const res = await fetch(`/api/music/${id}`, {
+  const res = await fetch(`/api/admin/music/${id}`, {
     method: 'DELETE',
   })
   if (!res.ok) throw new Error('删除音乐项目失败')
@@ -220,19 +220,19 @@ export default function MusicProjectsPage() {
               <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
                 <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
-                <p className="text-xs text-slate-500">音乐项目管理</p>
+                <p className="text-xs text-slate-500">音乐生成管理</p>
               </div>
             </Link>
 
             <div className="flex items-center gap-3">
 
               <Button
-                onClick={() => router.push('/music/new')}
+                onClick={() => router.push('/admin/music/new')}
                 size="sm"
                 className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white shadow-sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                新建项目
+                添加音乐生成
               </Button>
             </div>
           </div>
@@ -248,7 +248,7 @@ export default function MusicProjectsPage() {
               <Disc className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">音乐项目管理</h1>
+              <h1 className="text-2xl font-bold text-slate-900">音乐生成管理</h1>
               <p className="text-sm text-slate-500">创建和管理您的音乐制作项目</p>
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function MusicProjectsPage() {
               创建音乐项目，添加母带，开始您的音乐制作之旅
             </p>
             <Button
-              onClick={() => router.push('/music/new')}
+              onClick={() => router.push('/admin/music/new')}
               size="lg"
               className="rounded-full bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white px-8 shadow-lg shadow-cyan-200"
             >
@@ -326,14 +326,6 @@ export default function MusicProjectsPage() {
                             </p>
                           </div>
                         </div>
-                        <Badge className={`${statusConfig.color} flex items-center gap-1`}>
-                          {project.status === 'ANALYZING' ? (
-                            <StatusIcon className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <StatusIcon className="w-3 h-3" />
-                          )}
-                          {statusConfig.label}
-                        </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
@@ -344,10 +336,6 @@ export default function MusicProjectsPage() {
                             <span className="line-clamp-2">{project.description}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <Music className="w-4 h-4" />
-                          <span>母带: {project.musicCovers.length} 个</span>
-                        </div>
                         <div className="flex items-center gap-4 text-xs text-slate-500">
                           <span>采样: {project.sampleRate / 1000}kHz</span>
                           <span>比特: {project.bitrate / 1000}kbps</span>
@@ -359,18 +347,10 @@ export default function MusicProjectsPage() {
                           variant="ghost"
                           size="sm"
                           className="flex-1 text-slate-600 hover:text-cyan-600 hover:bg-cyan-50"
-                          onClick={() => router.push(`/music/${project.id}`)}
+                          onClick={() => router.push(`/admin/music/${project.id}`)}
                         >
                           查看详情
                           <ArrowRight className="w-4 h-4 ml-1" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
-                          onClick={() => router.push(`/music/${project.id}/edit`)}
-                        >
-                          <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"

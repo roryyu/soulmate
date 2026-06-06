@@ -638,18 +638,9 @@ export default function ResearchDashboard() {
                         </div>
                         我的反馈
                       </Link>
+
                       <Link
-                        href="/music-covers"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                          <User className="w-4 h-4 text-sky-600" />
-                        </div>
-                        母带管理
-                      </Link>
-                      <Link
-                        href="/music"
+                        href="/admin/prescription"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
                       >
@@ -677,6 +668,26 @@ export default function ResearchDashboard() {
                       {/* admin 用户显示 prompt 调优和用户管理菜单 */}
                       {session?.user?.role === 'ADMIN' && (
                         <>
+                       <Link
+                        href="/admin/music"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-sky-600" />
+                        </div>
+                        音乐生成
+                      </Link>
+                      <Link
+                        href="/admin/toc-data"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-sky-600" />
+                        </div>
+                        音乐素材
+                      </Link>
                           <Link
                             style={{ display: 'none' }}
                             href="/auth/admin/dashboard"

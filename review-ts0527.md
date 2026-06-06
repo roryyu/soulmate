@@ -77,7 +77,7 @@ data: coversData, // 第36行 - TS7005
 
 **文件**: 
 - `app/music/[id]/edit/page.tsx` (1处)
-- `app/music/new/page.tsx` (4处)
+- `app/admin/music/new/page.tsx` (4处)
 
 **行号**: 
 - edit: 417

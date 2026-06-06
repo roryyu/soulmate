@@ -191,10 +191,12 @@ model ResearchProject {
   sampleRate  Int      @default(44100) // 采样率
   bitrate     Int      @default(256000) // 比特率
   format      String   @default("mp3") // 音频格式
+  tocDataId   String?  // 关联的目录数据ID
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tocData     TocData? @relation(fields: [tocDataId], references: [id])
 
   // 子功能数据
   ideas       ResearchIdea[]
@@ -620,4 +622,29 @@ model FeedbackStatus {
 
   @@index([feedbackId])
   @@index([changedAt])
+}
+
+// ========== TOC 数据存储模块 ==========
+
+model TocData {
+  id        String   @id
+  name      String?  // 文件名称
+  key       String?
+  etag      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  researchProjects ResearchProject[]
+}
+
+// ========== 处方模块 ==========
+
+model Prescription {
+  id        String   @id @default(uuid())
+  name      String?
+  prompt    String?
+  arguments String?
+  etag      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

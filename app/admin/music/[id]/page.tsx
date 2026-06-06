@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -21,6 +21,9 @@ import {
   Loader2,
   Music,
   Plus,
+  Play,
+  Pause,
+  Download,
 } from 'lucide-react'
 
 // 类型定义
@@ -41,6 +44,15 @@ type MusicCoverResource = {
   musicCover: MusicCover
 }
 
+type TocData = {
+  id: string
+  name: string | null
+  key: string | null
+  etag: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 type ResearchProject = {
   id: string
   userId: string
@@ -52,20 +64,22 @@ type ResearchProject = {
   sampleRate: number
   bitrate: number
   format: string
+  tocDataId: string | null
   musicCovers: MusicCoverResource[]
+  tocData: TocData | null
   createdAt: Date
   updatedAt: Date
 }
 
 // API 调用函数
 async function fetchMusicProject(id: string): Promise<ResearchProject> {
-  const res = await fetch(`/api/music/${id}`)
+  const res = await fetch(`/api/admin/music/${id}`)
   if (!res.ok) throw new Error('获取音乐项目详情失败')
   return res.json()
 }
 
 async function deleteMusicProject(id: string): Promise<void> {
-  const res = await fetch(`/api/music/${id}`, {
+  const res = await fetch(`/api/admin/music/${id}`, {
     method: 'DELETE',
   })
   if (!res.ok) throw new Error('删除音乐项目失败')
@@ -142,6 +156,9 @@ export default function MusicProjectDetailPage({
   const router = useRouter()
   const [project, setProject] = useState<ResearchProject | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // 加载音乐项目详情
   const loadProject = async () => {
@@ -158,6 +175,68 @@ export default function MusicProjectDetailPage({
   useEffect(() => {
     loadProject()
   }, [params.id])
+
+  // 清理音频资源
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  // 播放/暂停音频
+  const handlePlay = () => {
+    if (!project?.tocDataId) return
+
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+      return
+    }
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio(`/api/admin/toc-data/${project.tocDataId}/stream`)
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false))
+      audioRef.current.addEventListener('error', () => {
+        alert('音频播放失败')
+        setIsPlaying(false)
+      })
+    }
+
+    audioRef.current.play()
+    setIsPlaying(true)
+  }
+
+  // 下载音频
+  const handleDownload = async () => {
+    if (!project?.tocDataId) return
+    
+    setIsDownloading(true)
+    try {
+      const res = await fetch(`/api/admin/toc-data/${project.tocDataId}/download`)
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || '下载失败')
+        return
+      }
+
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${project.title}.mp3`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch {
+      alert('下载失败，请重试')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   // 如果状态是分析中，轮询更新
   useEffect(() => {
@@ -236,14 +315,6 @@ export default function MusicProjectDetailPage({
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
-                className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
-                onClick={() => router.push(`/music/${project.id}/edit`)}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                编辑
-              </Button>
-              <Button
-                variant="ghost"
                 className="text-slate-600 hover:text-red-600 hover:bg-red-50"
                 onClick={handleDelete}
               >
@@ -280,14 +351,6 @@ export default function MusicProjectDetailPage({
                 <h1 className="text-2xl font-bold text-slate-900">
                   {project.title}
                 </h1>
-                <Badge className={`${statusConfig.color} flex items-center gap-1`}>
-                  {project.status === 'ANALYZING' ? (
-                    <StatusIcon className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <StatusIcon className="w-3 h-3" />
-                  )}
-                  {statusConfig.label}
-                </Badge>
               </div>
               <p className="text-sm text-slate-500">
                 {project.field} · 创建于 {formatDate(project.createdAt)}
@@ -371,78 +434,72 @@ export default function MusicProjectDetailPage({
             </CardContent>
           </Card>
 
-          {/* 音乐母带列表 */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between" style={{'display': 'none'}}>
-                <CardTitle className="text-lg font-semibold text-slate-800">
-                  音乐母带 ({project.musicCovers.length})
+          {/* 生成的音频 */}
+          {project.tocData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                  <Music className="w-5 h-5 text-cyan-500" />
+                  生成的音频
                 </CardTitle>
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white"
-                  onClick={() => router.push('/music-covers/new')}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  添加母带
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {project.musicCovers.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  <Music className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                  <p>还没有添加音乐母带</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {project.musicCovers.map((resource) => {
-                    const coverStatusConfig = getStatusConfig(resource.musicCover.status)
-                    const CoverStatusIcon = coverStatusConfig.icon
-                    return (
-                      <div
-                        key={resource.id}
-                        className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center">
-                            <Music className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-slate-900 font-medium">
-                              {resource.musicCover.name || '未命名'}
-                            </p>
-                            <div className="flex items-center gap-3 text-xs text-slate-500">
-                              <span>{formatDuration(resource.musicCover.audioDuration)}</span>
-                              <span>{formatDate(resource.musicCover.createdAt)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`${coverStatusConfig.color} flex items-center gap-1`}>
-                            {resource.musicCover.status === 'processing' ? (
-                              <CoverStatusIcon className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <CoverStatusIcon className="w-3 h-3" />
-                            )}
-                            {coverStatusConfig.label}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-slate-600 hover:text-cyan-600 hover:bg-cyan-50"
-                            onClick={() => router.push(`/music-covers/${resource.musicCover.id}`)}
-                          >
-                            查看
-                          </Button>
-                        </div>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gradient-to-r from-cyan-50 to-teal-50 rounded-xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg">
+                        <Music className="w-7 h-7 text-white" />
                       </div>
-                    )
-                  })}
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {project.tocData.name || `${project.title}.mp3`}
+                        </p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          {project.format.toUpperCase()} · {project.bitrate / 1000}kbps
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handlePlay}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          isPlaying
+                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200 shadow-lg'
+                            : 'bg-white hover:bg-cyan-50 text-cyan-600 shadow-sm border border-cyan-200'
+                        }`}
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Pause className="w-4 h-4" />
+                            暂停
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4" />
+                            播放
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={handleDownload}
+                        disabled={isDownloading}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors shadow-sm border border-slate-200 disabled:opacity-60"
+                      >
+                        {isDownloading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                        下载
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
 

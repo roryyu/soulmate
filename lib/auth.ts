@@ -157,7 +157,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     // 登录成功后的默认落地页：数字疗愈仪表盘（退出登录时跳转到首页）
     async redirect({ url, baseUrl }) {
-      const dashboard = `${baseUrl}/music`
+      const dashboard = `${baseUrl}/admin/music`
       // 退出登录时跳转到首页
       if (url.includes('logout=true')) {
         return baseUrl

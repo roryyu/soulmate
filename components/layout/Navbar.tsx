@@ -92,7 +92,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
               <div className="text-sm text-slate-400">加载中...</div>
             ) : session ? (
               <div className="flex items-center gap-3">
-                <Link href="/music">
+                <Link href="/admin/prescription">
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all"
@@ -191,17 +191,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                           我的反馈
                         </Link>
                       <Link
-                        href="/music-covers"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                          <User className="w-4 h-4 text-sky-600" />
-                        </div>
-                        母带管理
-                      </Link>
-                      <Link
-                        href="/music"
+                        href="/admin/prescription"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
                       >
@@ -229,6 +219,26 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                         {/* 管理员导航菜单 */}
                         {session?.user?.role === 'ADMIN' && (
                         <>
+                                               <Link
+                        href="/admin/music"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-sky-600" />
+                        </div>
+                        音乐生成
+                      </Link>
+                      <Link
+                        href="/admin/toc-data"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-sky-600" />
+                        </div>
+                        音乐素材
+                      </Link>
                           <Link
                             style={{ display: 'none' }}
                             href="/auth/admin/dashboard"

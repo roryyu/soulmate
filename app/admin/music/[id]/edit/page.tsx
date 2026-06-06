@@ -55,7 +55,7 @@ type MusicProject = {
 
 // API 调用函数
 async function fetchMusicProject(id: string): Promise<MusicProject> {
-  const res = await fetch(`/api/music/${id}`)
+  const res = await fetch(`/api/admin/music/${id}`)
   if (!res.ok) throw new Error('获取音乐项目详情失败')
   return res.json()
 }
@@ -80,7 +80,7 @@ async function updateMusicProject(
     musicCoverIds?: string[]
   }
 ): Promise<MusicProject> {
-  const res = await fetch(`/api/music/${id}`, {
+  const res = await fetch(`/api/admin/music/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -152,12 +152,8 @@ export default function EditMusicProjectPage({
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [projectData, coversData] = await Promise.all([
-          fetchMusicProject(params.id),
-          fetchMusicCovers(),
-        ])
+        const projectData=await fetchMusicProject(params.id)
         setProject(projectData)
-        setMusicCovers(coversData.data)
         setFormData({
           title: projectData.title,
           field: projectData.field,
@@ -215,7 +211,7 @@ export default function EditMusicProjectPage({
         musicCoverIds: formData.musicCoverId ? [formData.musicCoverId] : [],
       })
 
-      router.push(`/music/${params.id}`)
+      router.push(`/admin/music/${params.id}`)
     } catch (error) {
       console.error('Failed to update music project:', error)
       alert('更新失败，请稍后重试')
@@ -267,7 +263,7 @@ export default function EditMusicProjectPage({
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href={`/music/${project.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Link href={`/admin/music/${project.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
                 <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
@@ -383,58 +379,6 @@ export default function EditMusicProjectPage({
             </CardContent>
           </Card>
 
-          {/* 选择音乐母带 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Music className="w-5 h-5 text-cyan-500" />
-                选择音乐母带
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {musicCovers.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  暂无音乐母带
-                  <div className="mt-4">
-                    <Button
-                      variant="ghost"
-                      onClick={() => router.push('/music-covers/new')}
-                      className="text-cyan-600 hover:text-cyan-700"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      上传新母带
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                <Label htmlFor="musicCoverId" className="text-slate-800">
-                  音乐母带
-                </Label>
-                <Select
-                  value={formData.musicCoverId}
-                  onValueChange={(value) => updateForm('musicCoverId', value)}
-                >
-                  <SelectTrigger disabled={isSubmitting} className="border-slate-200">
-                    <SelectValue placeholder="请选择一个音乐母带" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {musicCovers.map((cover) => (
-                      <SelectItem key={cover.id} value={cover.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{cover.name || '未命名'}</span>
-                          <span className="text-xs text-slate-400">
-                            ({formatDuration(cover.audioDuration)})
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* 音频设置 */}
           <Card>
