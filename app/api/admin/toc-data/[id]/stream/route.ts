@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
-import { downloadFile } from '@/lib/tos';
+import { downloadFile } from '@/lib/oss';
 
 export const dynamic = 'force-dynamic';
 

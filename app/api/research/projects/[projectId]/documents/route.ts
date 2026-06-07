@@ -4,7 +4,7 @@ import * as mammoth from 'mammoth'
 import { processDocumentEmbedding } from '@/lib/embedding-utils'
 import { checkOcrUploadCredits } from '@/lib/credits'
 import { getPdfPageCount } from '@/lib/pdf-page-count'
-import { uploadFile, getPresignedUrl, deleteFile } from '@/lib/tos'
+import { uploadFile, getPresignedUrl, deleteFile } from '@/lib/oss'
 import { ocrPdf, formatOcrContentWithPages } from '@/lib/volcano-visual'
 import { INSUFFICIENT_CREDITS_CODE } from '@/lib/credits-constants'
 

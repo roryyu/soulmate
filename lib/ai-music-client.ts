@@ -5,7 +5,7 @@
 import { chatWithLogging, AI_MODEL } from './ai';
 import { controlMusic, MusicControlRequest, MusicFileConfig } from './music-control';
 import { prisma } from '@/lib/prisma';
-import { downloadFile } from '@/lib/tos';
+import { downloadFile } from '@/lib/oss';
 
 /**
  * 音乐文件信息（用于AI解析）

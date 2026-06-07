@@ -28,6 +28,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@types/file-saver": "^2.0.7",
     "@volcengine/tos-sdk": "^2.9.0",
+    "ali-oss": "^6.23.0",
     "alipay-sdk": "^4.14.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.0",
@@ -56,6 +57,7 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
+    "@types/ali-oss": "^6.23.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.9.0",
     "@types/pdf-parse": "^1.1.5",

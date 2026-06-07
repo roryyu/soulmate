@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
-import { uploadFile } from '@/lib/tos';
+import { uploadFile } from '@/lib/oss';
 import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';

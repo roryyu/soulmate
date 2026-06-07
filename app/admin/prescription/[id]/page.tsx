@@ -478,7 +478,7 @@ export default function PrescriptionDetailPage({
           </Card>
 
           {/* 生成结果 */}
-          {prescription.etag && (
+          {prescription.key && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">

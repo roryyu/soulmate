@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as mammoth from 'mammoth'
-import { uploadFile, getPresignedUrl, deleteFile } from '@/lib/tos'
+import { uploadFile, getPresignedUrl, deleteFile } from '@/lib/oss'
 import { ocrPdf, formatOcrContentWithPages } from '@/lib/volcano-visual'
 
 export const dynamic = 'force-dynamic'

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
-import { downloadFile } from '@/lib/tos'
+import { downloadFile } from '@/lib/oss'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,14 +22,14 @@ export async function GET(
     return NextResponse.json({ error: '处方不存在' }, { status: 404 })
   }
 
-  if (!prescription.etag) {
+  if (!prescription.key) {
     return NextResponse.json({ error: '音频未生成，请先执行处方' }, { status: 400 })
   }
 
   try {
     const result = await downloadFile({
       bucket: BUCKET_NAME,
-      key: prescription.etag,
+      key: prescription.key,
     })
 
     const fileName = `${prescription.name || '处方音频'}.mp3`

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { aiMusicControl, MusicFileInfo } from '@/lib/ai-music-client'
-import { uploadFile, downloadFile } from '@/lib/tos'
+import { uploadFile, downloadFile } from '@/lib/oss'
 import { v4 as uuidv4 } from 'uuid'
 
 /**
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         prompt: prompt?.trim() || null,
         arguments: argumentsStr,
-        etag,
+        etag:etag,
         key: ekey,
       },
     })

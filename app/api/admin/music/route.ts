@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateMusic } from '@/lib/music'
 import { requireAdmin } from '@/lib/admin-auth';
-import { uploadFile } from '@/lib/tos';
+import { uploadFile } from '@/lib/oss';
 import { v4 as uuidv4 } from 'uuid';
 /**
  * 获取所有音乐项目列表

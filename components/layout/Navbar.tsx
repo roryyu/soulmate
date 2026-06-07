@@ -97,7 +97,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                     size="sm"
                     className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all"
                   >
-                    进入控制台
+                    生成疗愈处方
                   </Button>
                 </Link>
                 

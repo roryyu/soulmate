@@ -35,14 +35,14 @@ const { content } = await downloadFile({
   ```typescript
   import { NextRequest, NextResponse } from 'next/server'
   import { prisma } from '@/lib/prisma'
-  import { generatePresignedUrl } from '@/lib/tos'
+  import { generatePresignedUrl } from '@/lib/oss'
   import { preprocessMusicCover } from '@/lib/music-pre'
   ```
 - 确实缺少 `downloadFile` 的导入
 
 **修复建议**:
 - 检查 `@/lib/tos` 是否导出 `downloadFile`
-- 如果是，添加导入：`import { generatePresignedUrl, downloadFile } from '@/lib/tos'`
+- 如果是，添加导入：`import { generatePresignedUrl, downloadFile } from '@/lib/oss'`
 - 如果不是，检查该函数应该从哪里导入
 
 ---

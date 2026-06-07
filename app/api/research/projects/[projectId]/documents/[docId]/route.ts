@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getPresignedUrl } from '@/lib/tos'
+import { getPresignedUrl } from '@/lib/oss'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

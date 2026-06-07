@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireTenantAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
-import { downloadFile } from '@/lib/tos'
+import { downloadFile } from '@/lib/oss'
 import mammoth from 'mammoth'
 
 export const dynamic = 'force-dynamic'
