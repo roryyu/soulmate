@@ -114,7 +114,7 @@ model User {
   tenant    Tenant?    @relation(fields: [tenantId], references: [id])
   directoryUserRoles DirectoryUserRole[]
 
-  // Soulmate模块的数据
+  // Soulmates模块的数据
   researchProjects ResearchProject[]
 
   // 支付模块的数据
@@ -177,7 +177,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ========== 模块 1: Soulmate (Research Pro) ==========
+// ========== 模块 1: Soulmates (Research Pro) ==========
 
 // 课题项目表
 model ResearchProject {

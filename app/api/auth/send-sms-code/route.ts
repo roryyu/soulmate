@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     const accessKeyId = process.env.VOLCANO_SMS_ACCESS_KEY_ID
     const accessKeySecret = process.env.VOLCANO_SMS_ACCESS_KEY_SECRET
     const smsAccount = process.env.VOLCANO_SMS_ACCOUNT || ''
-    const sign = process.env.VOLCANO_SMS_SIGN || 'Soulmate'
+    const sign = process.env.VOLCANO_SMS_SIGN || 'Soulmates'
     const templateId = process.env.VOLCANO_SMS_TEMPLATE_ID || ''
 
     if (accessKeyId && accessKeySecret && smsAccount && templateId) {

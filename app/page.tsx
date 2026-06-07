@@ -190,7 +190,7 @@ function HeroSection() {
               variants={fadeInUp}
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6"
             >
-              Soulmate
+              Soulmates
               <br />   
               <span className="bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent">
                 疗愈全人类

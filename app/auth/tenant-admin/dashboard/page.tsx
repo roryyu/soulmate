@@ -93,7 +93,7 @@ function AdminDashboardContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            欢迎使用Soulmate租户管理员控制台，您可以在这里管理您的租户用户
+            欢迎使用Soulmates租户管理员控制台，您可以在这里管理您的租户用户
           </motion.p>
         </div>
 

@@ -506,9 +506,9 @@ export default function ResearchDashboard() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               {/* 使用 next/image 优化 LCP（替代 img） */}
-              <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
+              <Image src="/logo.jpg" alt="Soulmates" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
-                <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
+                <h1 className="text-lg font-bold text-slate-900">Soulmates</h1>
                 <p className="text-xs text-slate-500">数字疗愈全流程管理</p>
               </div>
             </Link>

@@ -118,7 +118,7 @@ export default function PaymentClientPage({
       <div className="max-w-5xl mx-auto text-center mb-12">
         <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-amber-400 text-sm font-medium mb-6">
           <Crown className="w-4 h-4" />
-          Soulmate · 会员中心
+          Soulmates · 会员中心
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
           解锁数字疗愈支持全流程
@@ -349,7 +349,7 @@ export default function PaymentClientPage({
       {/* 中文注释：产品说明与免责，置于套餐与充值区块之后 */}
       {products.length > 0 && (
         <p className="max-w-3xl mx-auto text-center text-slate-500 text-sm leading-relaxed px-4">
-          Soulmate用于中小学教师的课题研究梳理与表达支持，最终内容请结合教学实际，由教师本人审阅、修改与定稿
+          Soulmates用于中小学教师的课题研究梳理与表达支持，最终内容请结合教学实际，由教师本人审阅、修改与定稿
         </p>
       )}
 

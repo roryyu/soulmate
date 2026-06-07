@@ -1,4 +1,4 @@
-# EduNexus (Soulmate)
+# EduNexus (Soulmates)
 
 现代化全栈Next.js应用，用于教育数字疗愈项目管理。帮助教师和学生通过创意构思、文献搜索、阅读参考文献、撰写文稿等阶段管理数字疗愈项目。
 
@@ -122,7 +122,7 @@
 - **Session** - 用户会话管理
 - **VerificationToken** - 邮箱验证令牌
 
-### Soulmate核心模型
+### Soulmates核心模型
 - **ResearchProject** - 数字疗愈课题项目
 - **ResearchIdea** - 项目创意/构思
 - **ResearchSearch** - CNKI 文献搜索记录
@@ -196,7 +196,7 @@ ARK_MODEL="doubao-pro-32k-2411"
 
 ## 📝 项目功能
 
-Soulmate (EduNexus) 提供完整的教育数字疗愈项目管理流程：
+Soulmates (EduNexus) 提供完整的教育数字疗愈项目管理流程：
 
 1. **创意构思** - 使用 AI 生成课题创意和研究方向
 2. **文献搜索** - 集成 CNKI 文献搜索功能

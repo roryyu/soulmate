@@ -318,7 +318,7 @@ export default function ResearchLayout({
             <div className="flex items-center justify-center gap-2">
               <div className="w-8 h-px bg-gradient-to-r from-transparent to-teal-200" />
               <span className="text-[11px] text-teal-400 tracking-widest uppercase">
-                Soulmate v1.0
+                Soulmates v1.0
               </span>
               <div className="w-8 h-px bg-gradient-to-l from-transparent to-teal-200" />
             </div>

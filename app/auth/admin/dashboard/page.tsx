@@ -133,7 +133,7 @@ function AdminDashboardContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            欢迎使用Soulmate管理员控制台，您可以在这里管理系统的各个功能模块
+            欢迎使用Soulmates管理员控制台，您可以在这里管理系统的各个功能模块
           </motion.p>
         </div>
 

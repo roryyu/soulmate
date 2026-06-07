@@ -282,9 +282,9 @@ export default function PrescriptionDetailPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/admin/prescription" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="/logo.jpg" alt="Soulmate" width={40} height={40} className="w-10 h-10 object-contain" priority />
+              <Image src="/logo.jpg" alt="Soulmates" width={40} height={40} className="w-10 h-10 object-contain" priority />
               <div>
-                <h1 className="text-lg font-bold text-slate-900">Soulmate</h1>
+                <h1 className="text-lg font-bold text-slate-900">Soulmates</h1>
                 <p className="text-xs text-slate-500">处方详情</p>
               </div>
             </Link>
