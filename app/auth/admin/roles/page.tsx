@@ -106,7 +106,7 @@ export default function AdminRoleManagement() {
     }
 
     if (session?.user?.role !== 'ADMIN') {
-      router.push('/research/dashboard')
+      router.push('/admin/prescription')
       return
     }
 

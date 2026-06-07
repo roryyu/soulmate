@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         // 上传到 TOS
         const fileId = uuidv4()
         const key = `toc-data/${fileId}.mp3`
-        const BUCKET_NAME = process.env.TOS_BUCKET || 'soulmate'
+        const BUCKET_NAME = process.env.TOS_BUCKET
 
         const uploadResult = await uploadFile({
           bucket: BUCKET_NAME,

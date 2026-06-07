@@ -152,7 +152,7 @@ export default function AdminDashboardPage() {
 
     // 检查是否是租户管理员
     if (session?.user?.role !== 'TENANTADMIN') {
-      router.push('/research/dashboard')
+      router.push('/admin/prescription')
       return
     }
   }, [status, session, router])

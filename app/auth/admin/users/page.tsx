@@ -90,7 +90,7 @@ export default function AdminUserManagement() {
 
     // 检查是否是管理员
     if (session?.user?.role !== 'ADMIN') {
-      router.push('/research/dashboard')
+      router.push('/admin/prescription')
       return
     }
 
@@ -177,7 +177,7 @@ export default function AdminUserManagement() {
           setMessage({ type: 'error', text: '模拟登录失败' })
         } else {
           // 跳转到仪表盘
-          router.push('/research/dashboard')
+          router.push('/admin/prescription')
           router.refresh()
         }
       } else {

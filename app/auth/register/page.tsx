@@ -97,7 +97,7 @@ export default function Register() {
       }
 
       // 登录成功，跳转到仪表盘
-      router.push('/research/dashboard')
+      router.push('/admin/prescription')
       router.refresh()
     } catch {
       setError('注册失败，请稍后重试')

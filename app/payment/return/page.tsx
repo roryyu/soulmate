@@ -131,7 +131,7 @@ export default function PaymentReturnPage() {
                 会员与积分
               </Button>
               <Button
-                onClick={() => router.push('/research/dashboard')}
+                onClick={() => router.push('/admin/prescription')}
               >
                 进入工作台
               </Button>

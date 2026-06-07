@@ -391,7 +391,7 @@ function CTASection() {
             whileTap={{ scale: 0.95 }}
           >
             {session ? (
-              <Link href="/research/dashboard">
+              <Link href="/admin/prescription">
                 <Button 
                   size="lg"
                   className="rounded-full bg-white text-slate-900 hover:bg-slate-100 px-8 shadow-xl"
@@ -404,7 +404,7 @@ function CTASection() {
               <Button 
                 size="lg"
                 className="rounded-full bg-white text-slate-900 hover:bg-slate-100 px-8 shadow-xl"
-                onClick={() => signIn(undefined, { callbackUrl: '/research/dashboard' })}
+                onClick={() => signIn(undefined, { callbackUrl: '/admin/prescription' })}
               >
                 马上体验"灵犀一点"
                 <Sparkles className="ml-2 w-4 h-4" />

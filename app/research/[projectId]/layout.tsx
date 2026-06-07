@@ -173,7 +173,7 @@ export default function ResearchLayout({
             {/* 返回按钮区域 - 移到最上面 */}
             <div className="flex flex-col gap-1 mb-4">
               <Link
-                href="/research/dashboard"
+                href="/admin/prescription"
                 className="flex items-center gap-2.5 px-2 py-2 text-sm text-teal-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all duration-200 group"
               >
                 <Home size={14} className="transition-transform group-hover:-translate-x-0.5" />

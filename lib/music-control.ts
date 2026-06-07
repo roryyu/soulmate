@@ -12,23 +12,14 @@ let ffmpeg: any;
 try {
   ffmpeg = require('fluent-ffmpeg');
 } catch (e) {
-  console.warn('⚠️ fluent-ffmpeg 未安装，请运行: npm install fluent-ffmpeg ffmpeg-static');
+  console.warn('⚠️ fluent-ffmpeg 未安装，请运行: npm install fluent-ffmpeg');
 }
 
-// 配置 ffmpeg 路径 (如果使用 ffmpeg-static)
-let ffmpegPath: string | undefined;
-let ffprobePath: string | undefined;
-try {
-  const ffmpegStatic = require('ffmpeg-static');
-  const ffprobeStatic = require('ffprobe-static');
-  ffmpegPath = ffmpegStatic;
-  ffprobePath = ffprobeStatic.path;
-  if (ffmpeg) {
-    ffmpeg.setFfmpegPath(ffmpegPath);
-    ffmpeg.setFfprobePath(ffprobePath);
-  }
-} catch (e) {
-  console.warn('⚠️ ffmpeg-static/ffprobe-static 未安装，请确保系统已安装 ffmpeg');
+// 配置 ffmpeg 路径 - 优先使用系统 ffmpeg
+if (ffmpeg) {
+  // 优先使用系统安装的 ffmpeg
+  ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH || '/opt/homebrew/bin/ffmpeg');
+  ffmpeg.setFfprobePath(process.env.FFPROBE_PATH || '/opt/homebrew/bin/ffprobe');
 }
 
 /**
@@ -186,19 +177,19 @@ async function mixAudioWithBackground(
  * 使用 ffmpeg 创建带沉默的音频片段（用于占位）
  */
 async function createSilence(duration: number, outputPath: string): Promise<string> {
-  if (!ffmpeg) {
-    throw new Error('fluent-ffmpeg 未安装');
-  }
-
+  const ffmpegPath = process.env.FFMPEG_PATH || '/opt/homebrew/bin/ffmpeg';
+  
   return new Promise((resolve, reject) => {
-    ffmpeg()
-      .input('anullsrc=r=44100:cl=stereo')
-      .inputFormat('lavfi')
-      .duration(duration)
-      .output(outputPath)
-      .on('end', () => resolve(outputPath))
-      .on('error', (err: any) => reject(err))
-      .run();
+    try {
+      // 使用命令行直接调用 ffmpeg 创建静音音频
+      execSync(
+        `"${ffmpegPath}" -y -f lavfi -i anullsrc=r=44100:cl=stereo -t ${duration} "${outputPath}"`,
+        { stdio: 'pipe' }
+      );
+      resolve(outputPath);
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
@@ -489,7 +480,7 @@ export async function controlMusic(params: MusicControlRequest): Promise<string>
     console.log(`📌 耗时: ${duration}ms`);
     console.log('=====================================\n');
 
-    return finalBase64;
+    return finalFileBuffer;
   } catch (error) {
     console.error('\n========== ❌ 音乐控制错误 ==========');
     console.error(`📌 错误: ${error instanceof Error ? error.message : String(error)}`);

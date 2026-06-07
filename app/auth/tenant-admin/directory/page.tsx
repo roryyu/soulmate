@@ -212,7 +212,7 @@ export default function TenantDirectoryManagement() {
     }
 
     if (session?.user?.role !== 'TENANTADMIN') {
-      router.push('/research/dashboard')
+      router.push('/admin/prescription')
       return
     }
 

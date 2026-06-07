@@ -214,7 +214,7 @@ export default function MusicCoversPage() {
             </Link>
 
             <div className="flex items-center gap-3">
-              <Link href="/music">
+              <Link href="/admin/music">
                 <Button variant="ghost" size="sm" className="text-slate-600">
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   返回控制台

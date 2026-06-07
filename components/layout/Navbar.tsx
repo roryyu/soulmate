@@ -287,7 +287,7 @@ function Navbar({ currentPath }: { currentPath?: string }) {
                 <Button 
                   variant="outline" 
                   className="rounded-full border-sky-200 text-sky-600 hover:bg-sky-500 hover:text-white hover:border-sky-500 transition-colors"
-                  onClick={() => signIn(undefined, { callbackUrl: '/music' })}
+                  onClick={() => signIn(undefined, { callbackUrl: '/admin/music' })}
                 >
                   登录
                 </Button>

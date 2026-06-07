@@ -21,7 +21,7 @@ export default async function NewTocDataPage() {
           <ArrowLeft className="w-4 h-4" />
           返回列表
         </Link>
-        <h1 className="text-3xl font-bold text-slate-900 mb-6">上传文件到 TOS</h1>
+        <h1 className="text-3xl font-bold text-slate-900 mb-6">上传文件</h1>
         <p className="text-slate-500 text-sm mb-6">上传文件后，系统会自动将文件存储到 TOS 并记录 key 和 etag</p>
         <TocDataForm />
       </div>

@@ -28,7 +28,7 @@ export default function SignIn() {
   const afterLoginPath = useMemo(() => {
     const raw = searchParams.get('callbackUrl')
     if (raw && raw.startsWith('/') && !raw.startsWith('//')) return raw
-    return '/research/dashboard'
+    return '/admin/prescription'
   }, [searchParams])
 
   // 倒计时计时器

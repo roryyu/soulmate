@@ -20,7 +20,6 @@ import {
   Pause,
   Download,
   Loader2,
-  Sparkles,
   Edit,
 } from 'lucide-react'
 
@@ -52,19 +51,6 @@ async function deletePrescription(id: string): Promise<void> {
     method: 'DELETE',
   })
   if (!res.ok) throw new Error('删除处方失败')
-}
-
-async function executePrescription(id: string, tocDataId?: string): Promise<any> {
-  const res = await fetch(`/api/admin/prescription/${id}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tocDataId }),
-  })
-  if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error || '执行处方失败')
-  }
-  return res.json()
 }
 
 // 粒子背景组件
@@ -114,16 +100,13 @@ export default function PrescriptionDetailPage({
   const router = useRouter()
   const [prescription, setPrescription] = useState<Prescription | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isExecuting, setIsExecuting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState({ name: '', prompt: '', arguments: '' })
   const [isSaving, setIsSaving] = useState(false)
-  const [audioResult, setAudioResult] = useState<{
-    tocDataId: string
-    name: string
-  } | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [playingStatus, setPlayingStatus] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [showArguments, setShowArguments] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // 解析关联的音频文件
@@ -180,32 +163,6 @@ export default function PrescriptionDetailPage({
     }
   }
 
-  // 执行处方
-  const handleExecute = async () => {
-    if (!prescription) return
-
-    const tocDataId = linkedAudioFiles.length > 0 ? linkedAudioFiles[0].id : undefined
-
-    if (!confirm(`确定要执行处方"${prescription.name}"吗？`)) return
-
-    setIsExecuting(true)
-    try {
-      const result = await executePrescription(prescription.id, tocDataId)
-      if (result.tocData) {
-        setAudioResult({
-          tocDataId: result.tocData.id,
-          name: result.tocData.name || prescription.name || '处方音频',
-        })
-      }
-      alert('处方执行成功！')
-    } catch (error) {
-      console.error('Failed to execute prescription:', error)
-      alert(error instanceof Error ? error.message : '执行失败，请稍后重试')
-    } finally {
-      setIsExecuting(false)
-    }
-  }
-
   // 保存编辑
   const handleSave = async () => {
     setIsSaving(true)
@@ -229,31 +186,38 @@ export default function PrescriptionDetailPage({
   }
 
   // 播放音频
-  const handlePlay = (tocDataId: string) => {
+  const handlePlay = () => {
     if (isPlaying && audioRef.current) {
       audioRef.current.pause()
       setIsPlaying(false)
+      setPlayingStatus(0)
       return
     }
-
+    if (playingStatus === 1) return
+    setPlayingStatus(1)
     if (!audioRef.current) {
-      audioRef.current = new Audio(`/api/admin/toc-data/${tocDataId}/stream`)
+      audioRef.current = new Audio(`/api/admin/prescription/${params.id}/stream`)
       audioRef.current.addEventListener('ended', () => setIsPlaying(false))
       audioRef.current.addEventListener('error', () => {
         alert('音频播放失败')
         setIsPlaying(false)
       })
+      audioRef.current.addEventListener('canplay', () => {
+          console.log('可以播放了');
+          audioRef.current.play()
+          setIsPlaying(true)
+          setPlayingStatus(0)
+      });
     }
 
-    audioRef.current.play()
-    setIsPlaying(true)
+
   }
 
   // 下载音频
-  const handleDownload = async (tocDataId: string, name: string) => {
+  const handleDownload = async () => {
     setIsDownloading(true)
     try {
-      const res = await fetch(`/api/admin/toc-data/${tocDataId}/download`)
+      const res = await fetch(`/api/admin/prescription/${params.id}/download`)
       if (!res.ok) {
         const data = await res.json()
         alert(data.error || '下载失败')
@@ -264,7 +228,7 @@ export default function PrescriptionDetailPage({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${name}.mp3`
+      a.download = `${prescription?.name || '处方音频'}.mp3`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -412,13 +376,22 @@ export default function PrescriptionDetailPage({
                     />
                   </div>
                   <div>
-                    <Label className="text-sm text-slate-500 mb-1 block">附加参数</Label>
-                    <textarea
-                      value={editData.arguments}
-                      onChange={(e) => setEditData(prev => ({ ...prev, arguments: e.target.value }))}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-violet-500 font-mono text-sm"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowArguments(!showArguments)}
+                      className="text-sm text-slate-500 mb-1 flex items-center gap-1 hover:text-slate-700 transition-colors"
+                    >
+                      附加参数
+                      <span className="text-xs">{showArguments ? '▼' : '▶'}</span>
+                    </button>
+                    {showArguments && (
+                      <textarea
+                        value={editData.arguments}
+                        onChange={(e) => setEditData(prev => ({ ...prev, arguments: e.target.value }))}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-violet-500 font-mono text-sm"
+                      />
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -484,10 +457,19 @@ export default function PrescriptionDetailPage({
 
                   {prescription.arguments && !linkedAudioFiles.length && (
                     <div className="space-y-2 pt-4 border-t border-slate-100">
-                      <p className="text-sm text-slate-500">附加参数</p>
-                      <p className="text-slate-900 bg-slate-50 p-4 rounded-lg whitespace-pre-wrap font-mono text-sm">
-                        {prescription.arguments}
-                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowArguments(!showArguments)}
+                        className="text-sm text-slate-500 flex items-center gap-1 hover:text-slate-700 transition-colors"
+                      >
+                        附加参数
+                        <span className="text-xs">{showArguments ? '▼' : '▶'}</span>
+                      </button>
+                      {showArguments && (
+                        <p className="text-slate-900 bg-slate-50 p-4 rounded-lg whitespace-pre-wrap font-mono text-sm">
+                          {prescription.arguments}
+                        </p>
+                      )}
                     </div>
                   )}
                 </>
@@ -495,40 +477,8 @@ export default function PrescriptionDetailPage({
             </CardContent>
           </Card>
 
-          {/* 执行处方 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-violet-500" />
-                执行处方
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-slate-500 mb-4">
-                使用此处方模板生成音频。{linkedAudioFiles.length > 0 ? '将使用关联的音频文件作为输入。' : '当前没有关联的音频文件，将仅使用提示词生成。'}
-              </p>
-              <Button
-                onClick={handleExecute}
-                disabled={isExecuting}
-                className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-lg shadow-violet-200"
-              >
-                {isExecuting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    执行处方生成音频
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* 生成结果 */}
-          {audioResult && (
+          {prescription.etag && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -544,14 +494,14 @@ export default function PrescriptionDetailPage({
                         <Music className="w-7 h-7 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900">{audioResult.name}</p>
+                        <p className="font-medium text-slate-900">{prescription.name || '处方音频'}</p>
                         <p className="text-sm text-slate-500 mt-1">MP3</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handlePlay(audioResult.tocDataId)}
+                        onClick={() => handlePlay()}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                           isPlaying
                             ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200 shadow-lg'
@@ -566,13 +516,13 @@ export default function PrescriptionDetailPage({
                         ) : (
                           <>
                             <Play className="w-4 h-4" />
-                            播放
+                            {playingStatus === 0 ? '播放' : '加载中'}
                           </>
                         )}
                       </button>
 
                       <button
-                        onClick={() => handleDownload(audioResult.tocDataId, audioResult.name)}
+                        onClick={() => handleDownload()}
                         disabled={isDownloading}
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors shadow-sm border border-slate-200 disabled:opacity-60"
                       >

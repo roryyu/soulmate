@@ -71,11 +71,12 @@ function ParticleBackground() {
   )
 }
 
-// 创建处方
+// 创建处方（一次性完成：创建 + AI 生成音频）
 async function createPrescription(data: {
   name: string
   prompt?: string
-  arguments?: string
+  audioFiles?: Array<{ id: string; name: string | null }>
+  totalDuration?: number
 }): Promise<any> {
   const res = await fetch('/api/admin/prescription', {
     method: 'POST',
@@ -101,7 +102,7 @@ export default function NewPrescriptionPage() {
   const [formData, setFormData] = useState({
     name: '',
     prompt: '',
-    arguments: '',
+    totalDuration: '',
   })
   const [selectedAudioFiles, setSelectedAudioFiles] = useState<TocData[]>([])
   const [tocDataList, setTocDataList] = useState<TocData[]>([])
@@ -160,6 +161,7 @@ export default function NewPrescriptionPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
     if (!formData.name.trim()) newErrors.name = '请输入处方名称'
+    if (!formData.totalDuration.trim() || parseInt(formData.totalDuration) <= 0) newErrors.totalDuration = '请输入有效的音乐时长'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -171,15 +173,11 @@ export default function NewPrescriptionPage() {
 
     setIsSubmitting(true)
     try {
-      // 将选中的音频文件信息编码到 arguments 中
-      const audioArgs = selectedAudioFiles.length > 0
-        ? JSON.stringify({ audioFiles: selectedAudioFiles.map(f => ({ id: f.id, name: f.name })) })
-        : undefined
-
       const prescription = await createPrescription({
         name: formData.name.trim(),
         prompt: formData.prompt.trim() || undefined,
-        arguments: audioArgs || formData.arguments.trim() || undefined,
+        audioFiles: selectedAudioFiles.map(f => ({ id: f.id, name: f.name })),
+        totalDuration: parseInt(formData.totalDuration),
       })
 
       router.push(`/admin/prescription/${prescription.id}`)
@@ -380,21 +378,26 @@ export default function NewPrescriptionPage() {
                 </p>
               </div>
 
-              {/* 附加参数 */}
+              {/* 音乐时长 */}
               <div>
-                <Label htmlFor="arguments" className="text-slate-800">
-                  附加参数
+                <Label htmlFor="totalDuration" className="text-slate-800">
+                  音乐时长（秒） <span className="text-red-500">*</span>
                 </Label>
-                <Textarea
-                  id="arguments"
-                  value={formData.arguments}
-                  onChange={(e) => updateForm('arguments', e.target.value)}
-                  placeholder="可选的附加参数，如时长、音量等..."
-                  rows={3}
+                <Input
+                  id="totalDuration"
+                  type="number"
+                  min="1"
+                  value={formData.totalDuration}
+                  onChange={(e) => updateForm('totalDuration', e.target.value)}
+                  placeholder="例如：60"
                   disabled={isSubmitting}
-                  className="border-slate-200 font-mono text-sm"
+                  className={errors.totalDuration ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-slate-200'}
                 />
+                {errors.totalDuration && (
+                  <p className="mt-1 text-sm text-red-500">{errors.totalDuration}</p>
+                )}
               </div>
+
             </CardContent>
           </Card>
 

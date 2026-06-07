@@ -641,6 +641,7 @@ model TocData {
 
 model Prescription {
   id        String   @id @default(uuid())
+  key       String?
   name      String?
   prompt    String?
   arguments String?

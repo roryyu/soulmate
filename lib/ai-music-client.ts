@@ -4,6 +4,8 @@
 
 import { chatWithLogging, AI_MODEL } from './ai';
 import { controlMusic, MusicControlRequest, MusicFileConfig } from './music-control';
+import { prisma } from '@/lib/prisma';
+import { downloadFile } from '@/lib/tos';
 
 /**
  * 音乐文件信息（用于AI解析）
@@ -160,25 +162,40 @@ function parseAIResponse(response: string): AIAnalysisResult {
 /**
  * 将 AI 解析结果转化为音乐控制参数
  */
-function convertToControlRequest(
+async function convertToControlRequest(
   analysis: AIAnalysisResult,
   musicFiles: MusicFileInfo[],
   requestedDuration?: number
-): MusicControlRequest {
-  // 创建文件ID到文件数据的映射
-  const fileMap = new Map<string, MusicFileInfo>();
-  musicFiles.forEach(file => fileMap.set(file.id, file));
-
+): Promise<MusicControlRequest> {
+  const BUCKET_NAME = process.env.TOS_BUCKET || 'soulmate';
   const musicFileConfigs: MusicFileConfig[] = [];
 
   for (const fileInfo of analysis.files) {
-    const file = fileMap.get(fileInfo.id);
+    const file = musicFiles.find(f => f.id === fileInfo.id);
     if (!file) {
-      throw new Error(`找不到文件: ${fileInfo.id}`);
+      console.warn(`⚠️ 找不到文件: ${fileInfo.id}`);
+      continue;
     }
 
+    // 通过 tocData 获取文件 key
+    const tocData = await prisma.tocData.findUnique({
+      where: { id: file.id },
+    });
+
+    if (!tocData?.key) {
+      console.warn(`⚠️ 音频文件不存在或无 key: ${file.id}`);
+      continue;
+    }
+
+    // 从 TOS 下载文件
+    const result = await downloadFile({
+      bucket: BUCKET_NAME,
+      key: tocData.key,
+    });
+    const base64data = result.content.toString('base64');
+
     musicFileConfigs.push({
-      fileData: file.base64Data,
+      fileData: base64data,
       startTime: fileInfo.startTime,
       endTime: fileInfo.endTime,
       insertTime: fileInfo.insertTime,
@@ -212,7 +229,7 @@ function convertToControlRequest(
  * });
  * ```
  */
-export async function aiMusicControl(request: AIMusicControlRequest): Promise<string> {
+export async function aiMusicControl(request: AIMusicControlRequest): Promise<any> {
   console.log('\n========== 🎵 AI 音乐控制请求 ==========');
   console.log(`📌 用户指令: ${request.instruction}`);
   console.log(`📌 音乐文件数量: ${request.musicFiles.length}`);
@@ -240,9 +257,7 @@ export async function aiMusicControl(request: AIMusicControlRequest): Promise<st
         messages: [
           { role: 'system', content: MUSIC_CONTROL_SYSTEM_PROMPT },
           { role: 'user', content: userMessage },
-        ],
-        temperature: 0.3, // 低温度以获得更稳定的输出
-        response_format: { type: 'json_object' },
+        ]
       },
       {
         module: 'AI音乐控制',
@@ -268,7 +283,7 @@ export async function aiMusicControl(request: AIMusicControlRequest): Promise<st
     console.log('=====================================\n');
 
     // 4. 转化为音乐控制参数
-    const controlRequest = convertToControlRequest(
+    const controlRequest = await convertToControlRequest(
       analysis,
       request.musicFiles,
       request.totalDuration
@@ -279,7 +294,7 @@ export async function aiMusicControl(request: AIMusicControlRequest): Promise<st
     const result = await controlMusic(controlRequest);
     console.log('=====================================\n');
 
-    return result;
+    return {result,userMessage,aiResponse};
   } catch (error) {
     console.error('\n========== ❌ AI 音乐控制错误 ==========');
     console.error(`📌 错误: ${error instanceof Error ? error.message : String(error)}`);

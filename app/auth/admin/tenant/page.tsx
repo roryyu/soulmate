@@ -127,7 +127,7 @@ export default function AdminTenantManagement() {
 
     // 检查是否是管理员
     if (session?.user?.role !== 'ADMIN') {
-      router.push('/research/dashboard')
+      router.push('/admin/prescription')
       return
     }
 
