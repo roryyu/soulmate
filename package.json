@@ -15,7 +15,8 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "create-user": "tsx scripts/create-user.ts",
-    "create-admin": "tsx scripts/create-admin.ts"
+    "create-admin": "tsx scripts/create-admin.ts",
+    "db": "tsx scripts/db.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.6.0",
