@@ -1,39 +1,21 @@
 'use client'
 
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import {
-  Sparkles,
-  ArrowRight,
-  Lightbulb,
-  FileText,
-  Database,
-  MessageSquare,
-  Zap,
-  Layers,
+  ChevronDown,
   Settings,
   LogOut,
   User,
-  Users,
-  ChevronDown,
-  Search,
   Crown,
-  Coins,
   CreditCard,
   Receipt,
-  LayoutDashboard,
-  Sliders,
   ClipboardList,
-  Tags,
-  QrCode,
-  X,
 } from 'lucide-react'
 
-// Navbar 组件
 function Navbar({ currentPath }: { currentPath?: string }) {
   const { data: session, status } = useSession()
   const [scrolled, setScrolled] = useState(false)
@@ -41,12 +23,11 @@ function Navbar({ currentPath }: { currentPath?: string }) {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
+    const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // 点击外部关闭下拉框
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -58,245 +39,121 @@ function Navbar({ currentPath }: { currentPath?: string }) {
   }, [])
 
   return (
-    <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-200 ${
+        scrolled ? 'shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_6px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.1)]' : 'border-b border-[#ebebeb]'
+      }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo 和副标题 */}
-          <motion.div 
-            className="flex items-center gap-3"
-            whileHover={{ scale: 1.01 }}
-          >
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              {/* 使用 next/image 优化 LCP（替代 img） */}
-              <Image src="/logo.jpg" alt="Soulmates" width={40} height={40} className="w-10 h-10 object-contain" priority />
-              <div>
-                <h1 className="text-lg font-bold text-slate-900">Soulmates</h1>
-                <p className="text-xs text-slate-500">数字疗愈全流程管理</p>
-              </div>
-            </Link>
-          </motion.div>
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-10">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Image
+              src="/logo.jpg"
+              alt="Soulmates"
+              width={40}
+              height={40}
+              className="w-10 h-10 object-contain rounded-lg"
+              priority
+            />
+            <div>
+              <h1 className="text-[16px] font-semibold text-[#222222] leading-tight">Soulmates</h1>
+              <p className="text-[13px] text-[#6a6a6a] leading-tight">数字疗愈全流程管理</p>
+            </div>
+          </Link>
 
-          {/* 用户区域 */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-center gap-4"
-          >
+          {/* 右侧用户区域 */}
+          <div className="flex items-center gap-3">
             {status === 'loading' ? (
-              <div className="text-sm text-slate-400">加载中...</div>
+              <div className="text-[14px] text-[#929292]">加载中...</div>
             ) : session ? (
               <div className="flex items-center gap-3">
                 <Link href="/admin/prescription">
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all"
-                  >
-                    生成疗愈处方
-                  </Button>
+                  <button className="h-12 px-6 rounded-lg bg-[#ff385c] text-white text-[16px] font-medium hover:bg-[#e00b41] transition-colors">
+                    疗愈处方
+                  </button>
                 </Link>
-                
-                {/* 用户头像下拉框 */}
+
+                {/* 用户头像下拉 */}
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-full border border-[#dddddd] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_6px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.1)] transition-shadow"
                   >
-                    {/* 头像 */}
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-medium text-sm shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-[#222222] flex items-center justify-center text-white font-medium text-sm">
                       {session.user?.name?.[0] || session.user?.email?.[0] || 'U'}
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-[#222222] transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
-                  {/* 下拉菜单 */}
                   {dropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50"
-                    >
-                      {/* 用户信息头部 */}
-                      <div className="px-4 py-3 bg-gradient-to-r from-sky-50 to-sky-100 border-b border-slate-100">
-                        <p className="text-sm font-semibold text-slate-700">{session.user?.name || '用户'}</p>
-                        <p className="text-xs text-slate-500 truncate">{session.user?.email}</p>
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_6px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.1)] border border-[#ebebeb] overflow-hidden">
+                      {/* 用户信息 */}
+                      <div className="px-4 py-3 border-b border-[#ebebeb]">
+                        <p className="text-[14px] font-semibold text-[#222222]">{session.user?.name || '用户'}</p>
+                        <p className="text-[13px] text-[#6a6a6a] truncate">{session.user?.email}</p>
                       </div>
 
-                      {/* 菜单项 */}
                       <div className="py-2">
                         <Link
-                          style={{ display: 'none' }}
-                          href="/dashboard/settings"
+                          href="/admin/prescription"
                           onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-[14px] text-[#222222] hover:bg-[#f7f7f7] transition-colors"
                         >
-                          <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                            <Settings className="w-4 h-4 text-sky-600" />
-                          </div>
-                          账户设置
+                          <User className="w-4 h-4 text-[#6a6a6a]" />
+                          处方管理
                         </Link>
 
-                        {/* 会员、积分与支付入口 */}
-                        <Link
-                          style={{ display: 'none' }}
-                          href="/dashboard/membership"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                        >
-                          <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <Crown className="w-4 h-4 text-amber-600" />
-                          </div>
-                          会员与积分
-                        </Link>
-                        <Link
-                          style={{ display: 'none' }}
-                          href="/payment"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors"
-                        >
-                          <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-4 h-4 text-violet-600" />
-                          </div>
-                          套餐与充值
-                        </Link>
-                        <Link
-                          style={{ display: 'none' }}
-                          href="/dashboard/orders"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                        >
-                          <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <Receipt className="w-4 h-4 text-slate-600" />
-                          </div>
-                          我的订单
-                        </Link>
-
-                        {/* 我的反馈入口 */}
-                        <Link
-                          style={{ display: 'none' }}
-                          href="/dashboard/feedback"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-                        >
-                          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <ClipboardList className="w-4 h-4 text-emerald-600" />
-                          </div>
-                          我的反馈
-                        </Link>
-                      <Link
-                        href="/admin/prescription"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                          <User className="w-4 h-4 text-sky-600" />
-                        </div>
-                        处方管理
-                      </Link>
-                      {/* 租户管理员导航菜单 */}
-                        {session?.user?.role === 'TENANTADMIN' && (
-                        <>
-                          <Link
-                            style={{ display: 'none' }}
-                            href="/auth/tenant-admin/dashboard"
-                            onClick={() => setDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                          >
-                            <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                              <Settings className="w-4 h-4 text-sky-600" />
-                            </div>
-                            租户配置
-                          </Link>
-                        </>
-                        )}
-                        {/* 管理员导航菜单 */}
                         {session?.user?.role === 'ADMIN' && (
-                        <>
-                                               <Link
-                        href="/admin/music"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                          <User className="w-4 h-4 text-sky-600" />
-                        </div>
-                        音乐生成
-                      </Link>
-                      <Link
-                        href="/admin/toc-data"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                          <User className="w-4 h-4 text-sky-600" />
-                        </div>
-                        音乐素材
-                      </Link>
-                          <Link
-                            style={{ display: 'none' }}
-                            href="/auth/admin/dashboard"
-                            onClick={() => setDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
-                          >
-                            <div className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center">
-                              <Settings className="w-4 h-4 text-sky-600" />
-                            </div>
-                            系统配置
-                          </Link>
-                        </>
+                          <>
+                            <Link
+                              href="/admin/music"
+                              onClick={() => setDropdownOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-[14px] text-[#222222] hover:bg-[#f7f7f7] transition-colors"
+                            >
+                              <User className="w-4 h-4 text-[#6a6a6a]" />
+                              音乐生成
+                            </Link>
+                            <Link
+                              href="/admin/toc-data"
+                              onClick={() => setDropdownOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-[14px] text-[#222222] hover:bg-[#f7f7f7] transition-colors"
+                            >
+                              <User className="w-4 h-4 text-[#6a6a6a]" />
+                              音乐素材
+                            </Link>
+                          </>
                         )}
 
-                        <div className="my-2 border-t border-slate-100"></div>
+                        <div className="my-2 border-t border-[#ebebeb]" />
 
                         <button
                           onClick={() => {
                             setDropdownOpen(false)
                             signOut({ callbackUrl: '/?logout=true' })
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-[#222222] hover:bg-[#f7f7f7] transition-colors"
                         >
-                          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                            <LogOut className="w-4 h-4 text-red-600" />
-                          </div>
+                          <LogOut className="w-4 h-4 text-[#6a6a6a]" />
                           退出登录
                         </button>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  style={{ display: 'none' }}
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-amber-700 hover:bg-amber-50"
-                  onClick={() => signIn(undefined, { callbackUrl: '/payment' })}
-                >
-                  <Crown className="w-4 h-4 mr-1.5" />
-                  会员计划
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="rounded-full border-sky-200 text-sky-600 hover:bg-sky-500 hover:text-white hover:border-sky-500 transition-colors"
-                  onClick={() => signIn(undefined, { callbackUrl: '/admin/music' })}
-                >
-                  登录
-                </Button>
-              </div>
+              <button
+                className="h-12 px-6 rounded-lg bg-[#ff385c] text-white text-[16px] font-medium hover:bg-[#e00b41] transition-colors"
+                onClick={() => signIn(undefined, { callbackUrl: '/admin/prescription' })}
+              >
+                登录
+              </button>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.nav>
+    </nav>
   )
 }
 

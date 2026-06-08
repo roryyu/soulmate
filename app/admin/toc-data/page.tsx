@@ -1,12 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Database,
@@ -20,8 +15,8 @@ import {
   Play,
   Pause,
 } from 'lucide-react'
+import AdminPageHeader from '@/components/layout/AdminPageHeader'
 
-// 类型定义
 type TocData = {
   id: string
   name: string | null
@@ -30,7 +25,6 @@ type TocData = {
   updatedAt: Date
 }
 
-// API 调用函数
 async function fetchTocDataList(): Promise<TocData[]> {
   const res = await fetch('/api/admin/toc-data')
   if (!res.ok) throw new Error('获取文件列表失败')
@@ -39,9 +33,7 @@ async function fetchTocDataList(): Promise<TocData[]> {
 }
 
 async function deleteTocData(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/toc-data/${id}`, {
-    method: 'DELETE',
-  })
+  const res = await fetch(`/api/admin/toc-data/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('删除文件失败')
 }
 
@@ -69,44 +61,10 @@ async function downloadTocData(id: string): Promise<void> {
   document.body.removeChild(a)
 }
 
-// 粒子背景组件
-function ParticleBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(15)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-sky-400/20 rounded-full"
-          initial={{
-            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
-          }}
-          animate={{
-            y: [null, -20, 20],
-            opacity: [0.2, 0.5, 0.2],
-          }}
-          transition={{
-            duration: 3 + Math.random() * 2,
-            repeat: Infinity,
-            repeatType: 'reverse',
-            delay: Math.random() * 2,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// 格式化日期
 const formatDate = (date: Date) => {
-  return new Date(date).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
+  return new Date(date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-// 获取文件名
 const getFileName = (key: string | null) => {
   if (!key) return '-'
   const parts = key.split('/')
@@ -122,7 +80,6 @@ export default function AdminTocDataPage() {
   const [playingId, setPlayingId] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  // 加载文件列表
   const loadTocDataList = useCallback(async () => {
     try {
       const data = await fetchTocDataList()
@@ -134,18 +91,14 @@ export default function AdminTocDataPage() {
     }
   }, [])
 
-  useEffect(() => {
-    loadTocDataList()
-  }, [loadTocDataList])
+  useEffect(() => { loadTocDataList() }, [loadTocDataList])
 
-  // 过滤结果
   const filteredList = tocDataList.filter(item =>
     !searchTerm ||
     (item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (item.key && item.key.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  // 处理删除
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除这个文件吗？')) return
     try {
@@ -157,7 +110,6 @@ export default function AdminTocDataPage() {
     }
   }
 
-  // 处理下载
   const handleDownload = async (id: string) => {
     setDownloadingId(id)
     try {
@@ -170,20 +122,16 @@ export default function AdminTocDataPage() {
     }
   }
 
-  // 处理播放
   const handlePlay = (id: string) => {
     if (playingId === id && audioRef.current) {
       audioRef.current.pause()
       setPlayingId(null)
       return
     }
-
-    // 停止之前的播放
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current = null
     }
-
     audioRef.current = new Audio(`/api/admin/toc-data/${id}/stream`)
     audioRef.current.addEventListener('ended', () => setPlayingId(null))
     audioRef.current.addEventListener('error', () => {
@@ -194,206 +142,109 @@ export default function AdminTocDataPage() {
     setPlayingId(id)
   }
 
-  // 判断是否为音频文件
-  const isAudioFile = (fileName: string) => {
-    return /\.(mp3|wav|ogg|m4a|aac)$/i.test(fileName)
-  }
+  const isAudioFile = (fileName: string) => /\.(mp3|wav|ogg|m4a|aac)$/i.test(fileName)
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#dddddd] border-t-[#222222]" />
       </div>
     )
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-br from-sky-50/50 via-white to-white"
-    >
-      {/* 粒子背景 */}
-      <ParticleBackground />
+    <div className="min-h-screen bg-white">
+      <AdminPageHeader
+        subtitle="文件管理"
+        action={{ label: '上传文件', onClick: () => router.push('/admin/toc-data/new') }}
+      />
 
-      {/* 背景光晕装饰 */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-sky-400/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl" />
-      </div>
-
-      {/* 顶部导航栏 */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <Image src="/logo.jpg" alt="Soulmates" width={40} height={40} className="w-10 h-10 object-contain" priority />
-              <div>
-                <h1 className="text-lg font-bold text-slate-900">Soulmates</h1>
-                <p className="text-xs text-slate-500">文件管理</p>
-              </div>
-            </Link>
-
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => router.push('/admin/toc-data/new')}
-                size="sm"
-                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                上传文件
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 主内容区域 */}
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 页面标题 */}
+      <main className="max-w-[1280px] mx-auto px-6 lg:px-10 py-10">
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-md">
-              <HardDrive className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">文件管理</h1>
-              <p className="text-sm text-slate-500">管理上传的文件数据</p>
-            </div>
-          </div>
+          <h2 className="text-[22px] font-medium text-[#222222]">文件管理</h2>
+          <p className="text-[14px] text-[#6a6a6a] mt-1">管理上传的文件数据</p>
         </div>
 
-        {/* 搜索栏 */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#929292]" />
             <Input
               type="text"
               placeholder="搜索文件名或 Key..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-sky-500"
+              className="pl-10 h-12 border-[#dddddd] rounded-lg text-[14px] focus:border-[#222222] focus:ring-[#222222]"
             />
           </div>
         </div>
 
-        {/* 文件列表 */}
         {filteredList.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-slate-100"
-          >
-            <div className="w-24 h-24 mx-auto bg-gradient-to-br from-sky-100 to-blue-100 rounded-3xl flex items-center justify-center mb-6">
-              <Database className="w-12 h-12 text-sky-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-slate-800 mb-2">暂无文件数据</h3>
-            <p className="text-slate-500 mb-8 max-w-md mx-auto">
-              点击「上传文件」开始添加文件
-            </p>
-            <Button
+          <div className="text-center py-24 border border-[#ebebeb] rounded-[14px]">
+            <Database className="w-12 h-12 text-[#dddddd] mx-auto mb-4" />
+            <h3 className="text-[16px] font-semibold text-[#222222] mb-2">暂无文件数据</h3>
+            <p className="text-[14px] text-[#6a6a6a] mb-8">点击「上传文件」开始添加文件</p>
+            <button
               onClick={() => router.push('/admin/toc-data/new')}
-              size="lg"
-              className="rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 shadow-lg shadow-sky-200"
+              className="h-12 px-8 rounded-lg bg-[#ff385c] text-white text-[16px] font-medium hover:bg-[#e00b41] transition-colors"
             >
-              <Plus className="w-5 h-5 mr-2" />
               上传第一个文件
-            </Button>
-          </motion.div>
+            </button>
+          </div>
         ) : (
-          /* 文件卡片网格 */
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-          >
-            {filteredList.map((item, index) => (
-              <motion.div
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {filteredList.map((item) => (
+              <div
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                className="p-5 rounded-[14px] border border-[#dddddd] bg-gradient-to-br from-white via-cyan-50/30 to-sky-50/40 hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_6px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.1)] transition-shadow"
               >
-                <Card className="group hover:shadow-xl transition-all duration-300 border-slate-100">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all">
-                          <Database className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-sky-600 transition-colors line-clamp-1">
-                            {item.name || getFileName(item.key)}
-                          </CardTitle>
-                          <p className="text-xs text-slate-500">
-                            {formatDate(item.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-start gap-2 text-sm text-slate-600">
-                        <FileText className="w-4 h-4 mt-0.5 shrink-0" />
-                        <span className="line-clamp-2 font-mono text-xs break-all">
-                          {item.key || '-'}
-                        </span>
-                      </div>
-
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {isAudioFile(item.key||'') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={playingId === item.id 
-                            ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                            : "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                          }
-                          onClick={() => handlePlay(item.id)}
-                        >
-                          {playingId === item.id ? (
-                            <Pause className="w-4 h-4" />
-                          ) : (
-                            <Play className="w-4 h-4" />
-                          )}
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex-1 text-slate-600 hover:text-sky-600 hover:bg-sky-50"
-                        onClick={() => handleDownload(item.id)}
-                        disabled={downloadingId === item.id}
-                      >
-                        {downloadingId === item.id ? (
-                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                        ) : (
-                          <Download className="w-4 h-4 mr-1" />
-                        )}
-                        下载
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-slate-600 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[16px] font-semibold text-[#222222] truncate">
+                      {item.name || getFileName(item.key)}
+                    </h3>
+                    <p className="text-[13px] text-[#6a6a6a]">{formatDate(item.createdAt)}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 text-[12px] text-[#929292] font-mono break-all mb-4">
+                  {item.key || '-'}
+                </div>
+                <div className="flex items-center gap-2">
+                  {isAudioFile(item.key || '') && (
+                    <button
+                      onClick={() => handlePlay(item.id)}
+                      className={`h-9 w-9 rounded-lg flex items-center justify-center transition-colors ${
+                        playingId === item.id
+                          ? 'text-emerald-600 hover:bg-emerald-50'
+                          : 'text-[#6a6a6a] hover:text-[#222222] hover:bg-[#f7f7f7]'
+                      }`}
+                    >
+                      {playingId === item.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDownload(item.id)}
+                    disabled={downloadingId === item.id}
+                    className="flex-1 h-9 rounded-lg text-[14px] font-medium text-[#222222] hover:bg-[#f7f7f7] transition-colors flex items-center justify-center gap-1"
+                  >
+                    {downloadingId === item.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                    下载
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center text-[#6a6a6a] hover:text-[#c13515] hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </main>
-
-      {/* 底部装饰 */}
-      <div className="h-32 bg-gradient-to-t from-slate-50 to-transparent" />
-    </motion.div>
+    </div>
   )
 }

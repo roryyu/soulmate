@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, ArrowLeft, Upload, File, X, Loader2 } from 'lucide-react';
+import { Upload, File, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TocDataForm() {
@@ -77,12 +77,12 @@ export default function TocDataForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div className="border border-[#dddddd] rounded-[14px] p-6">
         <div
-          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all ${
             file
-              ? 'border-sky-400 bg-sky-50/50'
-              : 'border-slate-200 hover:border-sky-300 hover:bg-slate-50'
+              ? 'border-[#222222] bg-[#f7f7f7]'
+              : 'border-[#dddddd] hover:border-[#222222] hover:bg-[#f7f7f7]'
           }`}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
@@ -97,12 +97,12 @@ export default function TocDataForm() {
 
           {file ? (
             <div className="flex items-center justify-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-                <File className="w-6 h-6 text-sky-600" />
+              <div className="w-10 h-10 rounded-lg bg-[#f7f7f7] flex items-center justify-center">
+                <File className="w-5 h-5 text-[#222222]" />
               </div>
               <div className="text-left">
-                <p className="text-slate-900 font-medium">{file.name}</p>
-                <p className="text-sm text-slate-500">{formatFileSize(file.size)}</p>
+                <p className="text-[14px] font-medium text-[#222222]">{file.name}</p>
+                <p className="text-[13px] text-[#6a6a6a]">{formatFileSize(file.size)}</p>
               </div>
               <button
                 type="button"
@@ -110,34 +110,29 @@ export default function TocDataForm() {
                   setFile(null);
                   if (fileInputRef.current) fileInputRef.current.value = '';
                 }}
-                className="ml-4 p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                className="ml-4 p-2 rounded-lg hover:bg-[#f2f2f2] text-[#6a6a6a] hover:text-[#222222] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           ) : (
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer block"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-8 h-8 text-slate-400" />
-              </div>
-              <p className="text-slate-600 font-medium">点击或拖拽文件到此处上传</p>
-              <p className="text-sm text-slate-400 mt-1">支持任意文件类型</p>
+            <label htmlFor="file-upload" className="cursor-pointer block">
+              <Upload className="w-8 h-8 text-[#929292] mx-auto mb-3" />
+              <p className="text-[14px] font-medium text-[#222222]">点击或拖拽文件到此处上传</p>
+              <p className="text-[13px] text-[#6a6a6a] mt-1">支持任意文件类型</p>
             </label>
           )}
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[14px]">
           {error}
         </div>
       )}
 
       {uploadProgress && !error && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm">
+        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 text-[14px]">
           {uploadProgress}
         </div>
       )}
@@ -145,15 +140,14 @@ export default function TocDataForm() {
       <div className="flex gap-3">
         <Link
           href="/admin/toc-data"
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors"
+          className="h-12 px-6 rounded-lg border border-[#dddddd] text-[14px] font-medium text-[#222222] hover:border-[#222222] transition-colors inline-flex items-center gap-2"
         >
-          <ArrowLeft className="w-4 h-4" />
           返回
         </Link>
         <button
           type="submit"
           disabled={loading || !file}
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-medium text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-60"
+          className="flex-1 h-12 rounded-lg bg-[#ff385c] text-white text-[14px] font-medium hover:bg-[#e00b41] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {loading ? (
             <>

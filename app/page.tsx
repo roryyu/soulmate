@@ -1,227 +1,163 @@
 'use client'
 
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { useRef } from 'react'
 import { useSession, signIn } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { ArrowRight, Zap } from 'lucide-react'
 
-// 动画配置
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 }
-}
-
-const staggerContainer = {
-  initial: {},
-  animate: {
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-// 粒子效果组件
-function ParticleBackground() {
+// 炫彩流动线条 SVG
+function AuroraLines() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-primary/20 rounded-full"
-          initial={{
-            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
-          }}
-          animate={{
-            y: [null, -20, 20],
-            opacity: [0.2, 0.5, 0.2],
-          }}
-          transition={{
-            duration: 3 + Math.random() * 2,
-            repeat: Infinity,
-            repeatType: 'reverse',
-            delay: Math.random() * 2,
-          }}
-        />
-      ))}
+    <div className="aurora-lines">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="line1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ff385c" stopOpacity="0.3">
+              <animate attributeName="stopOpacity" values="0.3;0.6;0.3" dur="4s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="50%" stopColor="#5e6ad2" stopOpacity="0.2">
+              <animate attributeName="stopOpacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" stopColor="#00c896" stopOpacity="0.15">
+              <animate attributeName="stopOpacity" values="0.15;0.4;0.15" dur="4s" repeatCount="indefinite" />
+            </stop>
+          </linearGradient>
+          <linearGradient id="line2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ffb400" stopOpacity="0.2">
+              <animate attributeName="stopOpacity" values="0.2;0.45;0.2" dur="5s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" stopColor="#ff385c" stopOpacity="0.15">
+              <animate attributeName="stopOpacity" values="0.15;0.35;0.15" dur="5s" repeatCount="indefinite" />
+            </stop>
+          </linearGradient>
+          <linearGradient id="line3" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#5e6ad2" stopOpacity="0.2">
+              <animate attributeName="stopOpacity" values="0.2;0.5;0.2" dur="6s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" stopColor="#00c896" stopOpacity="0.2">
+              <animate attributeName="stopOpacity" values="0.2;0.45;0.2" dur="6s" repeatCount="indefinite" />
+            </stop>
+          </linearGradient>
+        </defs>
+        {/* 流动线条 1 */}
+        <path d="M-100,400 C100,200 300,600 500,350 S800,500 1000,300 1300,450 1400,250"
+          stroke="url(#line1)" strokeWidth="2.5" fill="none">
+          <animate attributeName="d"
+            values="M-100,400 C100,200 300,600 500,350 S800,500 1000,300 1300,450 1400,250;
+                    M-100,350 C150,500 250,150 550,450 S750,200 1050,400 1250,200 1400,350;
+                    M-100,400 C100,200 300,600 500,350 S800,500 1000,300 1300,450 1400,250"
+            dur="8s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 2 */}
+        <path d="M-50,200 C200,500 400,100 600,400 S900,150 1100,450 1250,200 1350,350"
+          stroke="url(#line2)" strokeWidth="2" fill="none">
+          <animate attributeName="d"
+            values="M-50,200 C200,500 400,100 600,400 S900,150 1100,450 1250,200 1350,350;
+                    M-50,300 C150,100 450,500 650,200 S850,450 1050,150 1300,400 1350,250;
+                    M-50,200 C200,500 400,100 600,400 S900,150 1100,450 1250,200 1350,350"
+            dur="10s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 3 */}
+        <path d="M-100,600 C100,300 350,550 550,250 S850,400 1050,200 1200,350 1400,150"
+          stroke="url(#line3)" strokeWidth="1.8" fill="none">
+          <animate attributeName="d"
+            values="M-100,600 C100,300 350,550 550,250 S850,400 1050,200 1200,350 1400,150;
+                    M-100,500 C150,650 300,200 600,500 S800,250 1100,450 1250,200 1400,300;
+                    M-100,600 C100,300 350,550 550,250 S850,400 1050,200 1200,350 1400,150"
+            dur="12s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 4 — 细线 */}
+        <path d="M-50,100 C300,350 500,50 700,300 S1000,100 1200,400"
+          stroke="url(#line1)" strokeWidth="1.2" fill="none" opacity="0.5">
+          <animate attributeName="d"
+            values="M-50,100 C300,350 500,50 700,300 S1000,100 1200,400;
+                    M-50,250 C250,50 550,400 750,150 S950,350 1200,100;
+                    M-50,100 C300,350 500,50 700,300 S1000,100 1200,400"
+            dur="9s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 5 */}
+        <path d="M-100,150 C150,400 350,80 600,500 S850,200 1100,350 1300,150 1400,400"
+          stroke="url(#line2)" strokeWidth="1.5" fill="none" opacity="0.7">
+          <animate attributeName="d"
+            values="M-100,150 C150,400 350,80 600,500 S850,200 1100,350 1300,150 1400,400;
+                    M-100,300 C200,100 400,500 650,150 S900,400 1150,100 1350,350 1400,200;
+                    M-100,150 C150,400 350,80 600,500 S850,200 1100,350 1300,150 1400,400"
+            dur="11s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 6 */}
+        <path d="M-80,500 C100,150 300,650 520,300 S780,550 980,180 1200,500 1380,280"
+          stroke="url(#line3)" strokeWidth="2.2" fill="none" opacity="0.5">
+          <animate attributeName="d"
+            values="M-80,500 C100,150 300,650 520,300 S780,550 980,180 1200,500 1380,280;
+                    M-80,350 C180,600 280,100 580,480 S720,180 1020,520 1200,200 1380,420;
+                    M-80,500 C100,150 300,650 520,300 S780,550 980,180 1200,500 1380,280"
+            dur="13s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 7 — 极细 */}
+        <path d="M-30,350 C180,100 420,550 630,200 S880,450 1080,120 1280,380 1400,200"
+          stroke="url(#line1)" strokeWidth="1" fill="none" opacity="0.4">
+          <animate attributeName="d"
+            values="M-30,350 C180,100 420,550 630,200 S880,450 1080,120 1280,380 1400,200;
+                    M-30,200 C220,480 380,120 680,420 S830,100 1120,480 1280,180 1400,350;
+                    M-30,350 C180,100 420,550 630,200 S880,450 1080,120 1280,380 1400,200"
+            dur="7s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 8 */}
+        <path d="M-100,700 C80,350 320,600 540,150 S800,500 1050,280 1250,600 1400,350"
+          stroke="url(#line2)" strokeWidth="1.8" fill="none" opacity="0.45">
+          <animate attributeName="d"
+            values="M-100,700 C80,350 320,600 540,150 S800,500 1050,280 1250,600 1400,350;
+                    M-100,450 C120,650 380,200 600,550 S780,150 1080,480 1280,250 1400,550;
+                    M-100,700 C80,350 320,600 540,150 S800,500 1050,280 1250,600 1400,350"
+            dur="14s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 9 */}
+        <path d="M-60,50 C200,300 450,30 680,380 S920,80 1150,420 1300,100 1400,300"
+          stroke="url(#line3)" strokeWidth="1.4" fill="none" opacity="0.55">
+          <animate attributeName="d"
+            values="M-60,50 C200,300 450,30 680,380 S920,80 1150,420 1300,100 1400,300;
+                    M-60,200 C160,50 500,400 720,100 S960,380 1100,80 1350,350 1400,120;
+                    M-60,50 C200,300 450,30 680,380 S920,80 1150,420 1300,100 1400,300"
+            dur="10.5s" repeatCount="indefinite" />
+        </path>
+        {/* 流动线条 10 — 最细装饰线 */}
+        <path d="M-40,250 C250,500 480,180 700,450 S950,100 1180,350 1350,180 1400,420"
+          stroke="url(#line1)" strokeWidth="0.8" fill="none" opacity="0.35">
+          <animate attributeName="d"
+            values="M-40,250 C250,500 480,180 700,450 S950,100 1180,350 1350,180 1400,420;
+                    M-40,400 C200,120 520,480 740,180 S900,420 1220,120 1300,400 1400,200;
+                    M-40,250 C250,500 480,180 700,450 S950,100 1180,350 1350,180 1400,420"
+            dur="11.5s" repeatCount="indefinite" />
+        </path>
+      </svg>
     </div>
   )
 }
 
-// 发光球体组件
-function GlowingOrb() {
-  return (
-    <div className="relative w-64 h-64 md:w-96 md:h-96">
-      {/* 外层光晕 */}
-      <motion.div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, rgba(56, 189, 248, 0) 70%)',
-        }}
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.5, 0.8, 0.5],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      {/* 中层光晕 */}
-      <motion.div
-        className="absolute inset-4 rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, rgba(14, 165, 233, 0.2) 50%, rgba(56, 189, 248, 0) 70%)',
-        }}
-        animate={{
-          scale: [1, 1.1, 1],
-          rotate: [0, 180, 360],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      {/* 内层核心 */}
-      <motion.div
-        className="absolute inset-8 rounded-full"
-        style={{
-          background: 'radial-gradient(circle at 30% 30%, rgba(186, 230, 253, 0.8), rgba(56, 189, 248, 0.6))',
-          boxShadow: '0 0 60px rgba(56, 189, 248, 0.5), inset 0 0 40px rgba(255, 255, 255, 0.3)',
-        }}
-        animate={{
-          scale: [1, 1.05, 1],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      {/* 装饰环 */}
-      <motion.div
-        className="absolute inset-0 rounded-full border-2 border-sky-200/30"
-        animate={{
-          rotate: [0, 360],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-    </div>
-  )
-}
-
-
-// Hero区域组件
+// Hero 区域
 function HeroSection() {
   const { data: session } = useSession()
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start start', 'end start']
-  })
-  
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
 
   return (
-    <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* 背景渐变 */}
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-50/50 via-white to-white" />
-      
-      {/* 粒子背景 */}
-      <ParticleBackground />
-      
-      <motion.div 
-        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20"
-        style={{ y, opacity }}
-      >
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* 左侧内容 */}
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="text-center lg:text-left"
-          >
-            <motion.div variants={fadeInUp} className="mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-sky-700 text-sm font-medium">
-                <Zap className="w-4 h-4" />
-                数字疗愈工具
-              </span>
-            </motion.div>
-            
-            <motion.h1 
-              variants={fadeInUp}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6"
-            >
-              Soulmates
-              <br />   
-              <span className="bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent">
-                疗愈全人类
-              </span>
-            </motion.h1>
-            
-            <motion.p 
-              variants={fadeInUp}
-              className="text-lg text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0"
-            >
-              全流程数字疗愈
-            </motion.p>
-            
-            <motion.div 
-              variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {session ? (
-                  <div></div>
-                ) : (
-                  <Button 
-                    size="lg"
-                    className="rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 shadow-lg shadow-sky-200"
-                    onClick={() => signIn(undefined, { callbackUrl: '/admin/prescription' })}
-                  >
-                    生成处方
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                )}
-              </motion.div>
-            </motion.div>
-          </motion.div>
-          
-          {/* 右侧视觉 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex justify-center"
-          >
-            <GlowingOrb />
-          </motion.div>
+    <section className="pt-20">
+      <div className="hero-aurora max-w-[1280px] mx-auto px-6 lg:px-10 py-32 rounded-none">
+        <AuroraLines />
+        <div className="relative z-10 text-center max-w-3xl mx-auto">
+          <h1 className="hero-title hero-glow text-[40px] md:text-[52px] lg:text-[60px] font-bold leading-[1.1] mb-6 tracking-tight">
+            Soulmates
+            <br />
+            疗愈全人类
+          </h1>
+          <p className="text-[18px] md:text-[20px] text-[#3f3f3f] leading-[1.5] mb-12 ">
+            全流程数字疗愈 · 从灵感到成果 · 一站式智能管理
+          </p>
         </div>
-      </motion.div>
-      
-      {/* 底部装饰 */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+      </div>
     </section>
   )
 }
 
-
-
-// 主页面组件
+// 主页面
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
