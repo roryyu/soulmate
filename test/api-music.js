@@ -1,6 +1,6 @@
 const options = {
   method: 'POST',
-  headers: {'Content-Type': 'application/json', Authorization: 'Bearer sk-cp-rRH2ZFQskqPOICR3EUzrQt7XfNTk2hJsOeIGSBWMVaEtH641IxGkRJ-OOmY5mgtfQl4RVL8HJdKyMgZFjLQWIwIbB5vcbZML6qIDfvbFHPhBs0QRVtYp6MY'},
+  headers: {'Content-Type': 'application/json', Authorization: 'Bearer sk-xxx'},
   body: JSON.stringify({
     model: 'music-2.6',
     output_format: 'url',
