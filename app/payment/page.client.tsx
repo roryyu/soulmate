@@ -349,7 +349,7 @@ export default function PaymentClientPage({
       {/* 中文注释：产品说明与免责，置于套餐与充值区块之后 */}
       {products.length > 0 && (
         <p className="max-w-3xl mx-auto text-center text-slate-500 text-sm leading-relaxed px-4">
-          Soulmates用于中小学教师的课题研究梳理与表达支持，最终内容请结合教学实际，由教师本人审阅、修改与定稿
+          
         </p>
       )}
 
