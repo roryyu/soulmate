@@ -15,6 +15,13 @@ export default function ExamplesPage() {
       description: '语音输入心情，返回定制音乐和疗愈文字',
       icon: '🎵',
       path: '/example/music'
+    },
+    {
+      id: 'diary',
+      title: '活动日记界面',
+      description: '上传最多九张图片，生成温馨的活动日记',
+      icon: '📔',
+      path: '/example/diary'
     }
   ]
 
