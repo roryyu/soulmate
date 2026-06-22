@@ -22,6 +22,13 @@ export default function ExamplesPage() {
       description: '上传最多九张图片，生成温馨的活动日记',
       icon: '📔',
       path: '/example/diary'
+    },
+    {
+      id: 'health',
+      title: '健康档案界面',
+      description: '全周期健康个人档案，步数、睡眠、运动数据展示',
+      icon: '❤️',
+      path: '/example/health'
     }
   ]
 
