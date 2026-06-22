@@ -36,6 +36,13 @@ export default function ExamplesPage() {
       description: '文档上传与目录管理，销售知识问答',
       icon: '💼',
       path: '/example/sales'
+    },
+    {
+      id: 'exam',
+      title: '知识考试系统',
+      description: '单选、多选、填空题，10题在线考试',
+      icon: '📝',
+      path: '/example/exam'
     }
   ]
 
