@@ -29,6 +29,13 @@ export default function ExamplesPage() {
       description: '全周期健康个人档案，步数、睡眠、运动数据展示',
       icon: '❤️',
       path: '/example/health'
+    },
+    {
+      id: 'sales',
+      title: '销售知识助手',
+      description: '文档上传与目录管理，销售知识问答',
+      icon: '💼',
+      path: '/example/sales'
     }
   ]
 
