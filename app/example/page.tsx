@@ -43,6 +43,13 @@ export default function ExamplesPage() {
       description: '单选、多选、填空题，10题在线考试',
       icon: '📝',
       path: '/example/exam'
+    },
+    {
+      id: 'media',
+      title: '自媒体素材生成',
+      description: '上传图片和提示词，AI生成精美素材',
+      icon: '🎨',
+      path: '/example/media'
     }
   ]
 
