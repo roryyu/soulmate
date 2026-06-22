@@ -241,8 +241,8 @@ export default function MusicPage() {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#f5f5f5] flex flex-col">
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+    <div className="h-screen w-screen bg-[#f5f5f5] flex flex-col overflow-x-hidden">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 fixed top-0 left-0 right-0 z-50">
         <button className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
           <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -264,11 +264,11 @@ export default function MusicPage() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 overflow-x-hidden pt-[60px] pb-[200px]">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {message.role === 'assistant' && (
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mr-2 mt-1">
@@ -334,7 +334,7 @@ export default function MusicPage() {
         ))}
 
         {isProcessing && (
-          <div className="flex justify-start">
+          <div className="flex justify-start w-full">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mr-2 mt-1">
               <span className="text-white text-sm">🎵</span>
             </div>
@@ -352,8 +352,8 @@ export default function MusicPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
-        <div className="flex items-center gap-3 mb-3 overflow-x-auto pb-1">
+      <div className="bg-white border-t border-gray-200 px-4 py-3 fixed bottom-0 left-0 right-0 z-50">
+        <div className="flex items-center gap-3 mb-3 overflow-x-auto pb-1 hide-scrollbar">
           <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-700 hover:bg-gray-200 transition-colors flex-shrink-0">
             <span className="text-lg">😌</span>
             放松心情
@@ -368,18 +368,18 @@ export default function MusicPage() {
           </button>
         </div>
 
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-3 w-full">
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
             <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </button>
 
-          <div className="flex-1 bg-gray-100 rounded-3xl px-4 py-3 flex items-center">
+          <div className="flex-1 bg-gray-100 rounded-3xl px-4 py-3 flex items-center min-w-0">
             <input
               type="text"
               placeholder="说说你的心情..."
-              className="flex-1 bg-transparent border-none outline-none text-base text-gray-900 placeholder-gray-400"
+              className="flex-1 bg-transparent border-none outline-none text-base text-gray-900 placeholder-gray-400 w-full"
               disabled={isProcessing || isRecording}
             />
           </div>
@@ -432,6 +432,16 @@ export default function MusicPage() {
           </div>
         )}
       </div>
+
+      <style jsx global>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }
