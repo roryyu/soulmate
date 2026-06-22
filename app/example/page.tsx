@@ -8,6 +8,13 @@ export default function ExamplesPage() {
       description: '长按语音输入，语音转文字，大模型回复',
       icon: '💬',
       path: '/example/chat'
+    },
+    {
+      id: 'music',
+      title: '音乐疗愈界面',
+      description: '语音输入心情，返回定制音乐和疗愈文字',
+      icon: '🎵',
+      path: '/example/music'
     }
   ]
 
