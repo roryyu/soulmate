@@ -14,7 +14,7 @@ export default function ChatPage() {
     {
       id: '1',
       role: 'assistant',
-      content: '你好！我是 Soulmates 智能助手，有什么可以帮助你的吗？',
+      content: '你好！我是 Soulmates 健康助手，专注于为你提供心理健康、睡眠管理和生活方式的专业建议。有什么可以帮助你的吗？',
       timestamp: new Date()
     }
   ])
@@ -108,11 +108,11 @@ export default function ChatPage() {
 
   const getRandomMockText = () => {
     const texts = [
-      '今天天气怎么样？',
-      '帮我写一首关于春天的诗',
-      '介绍一下人工智能的发展历史',
-      '如何提高工作效率？',
-      '推荐几本好看的书'
+      '最近睡眠质量不好，有什么改善方法？',
+      '工作压力太大，感觉很焦虑怎么办？',
+      '如何保持健康的生活作息？',
+      '有什么缓解疲劳的好方法？',
+      '想要改善心情，有什么建议吗？'
     ]
     return texts[Math.floor(Math.random() * texts.length)]
   }
@@ -136,18 +136,68 @@ export default function ChatPage() {
   const simulateAIResponse = async (userText: string) => {
     await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500))
 
-    const responses = [
-      `这是一个很好的问题！关于"${userText}"，我来为你详细解答一下...`,
-      `好的，我理解你的需求。让我想想怎么帮你解决"${userText}"这个问题...`,
-      `非常有趣的话题！关于"${userText}"，我有一些想法想和你分享...`,
-      `收到！我来帮你处理"${userText}"这个请求，请稍等片刻...`,
-      `好问题！让我为你分析一下"${userText}"这个话题...`
-    ]
+    let response = ''
+
+    if (userText.includes('睡眠') || userText.includes('睡觉')) {
+      response = `睡眠问题很常见，别担心！我给你几个建议：
+
+1. 保持规律的作息时间，每天同一时间起床
+2. 睡前1小时避免使用电子设备
+3. 保持卧室安静、黑暗、温度适宜
+4. 可以尝试冥想或深呼吸放松
+
+我们的 Soulmates 睡眠疗愈产品能帮助你更好地改善睡眠质量，了解更多：https://soulmates.com/sleep 🌙`
+    } else if (userText.includes('焦虑') || userText.includes('压力')) {
+      response = `工作压力大是现代人常见的问题，试试这些方法：
+
+1. 每天给自己留10分钟独处时间
+2. 尝试正念呼吸练习
+3. 适当运动释放压力
+4. 与朋友家人倾诉
+
+Soulmates 心理疗愈模块有专业的减压引导，了解更多：https://soulmates.com/anxiety 💆`
+    } else if (userText.includes('作息') || userText.includes('生活')) {
+      response = `保持健康的生活作息非常重要：
+
+1. 早上7-8点起床，喝一杯温水
+2. 中午小憩20-30分钟
+3. 晚上11点前入睡
+4. 三餐规律，营养均衡
+
+Soulmates 健康管理计划能帮你建立良好习惯，了解更多：https://soulmates.com/habit 🏃`
+    } else if (userText.includes('疲劳') || userText.includes('累')) {
+      response = `缓解疲劳需要身心兼顾：
+
+1. 保证7-8小时优质睡眠
+2. 每隔1小时起身活动5分钟
+3. 多吃富含维生素的食物
+4. 尝试放松音乐或冥想
+
+Soulmates 能量恢复产品能帮你快速恢复活力，了解更多：https://soulmates.com/energy ⚡`
+    } else if (userText.includes('心情') || userText.includes('情绪')) {
+      response = `改善心情有很多方法：
+
+1. 每天记录三件感恩的事
+2. 做自己喜欢的事，培养兴趣爱好
+3. 多晒太阳，增加户外活动
+4. 听喜欢的音乐，看治愈的电影
+
+Soulmates 心情疗愈音乐库能帮你调节情绪，了解更多：https://soulmates.com/mood 🎵`
+    } else {
+      response = `感谢你的问题！关于"${userText}"，我建议你：
+
+1. 保持积极心态，关注当下
+2. 适度运动，保持活力
+3. 与亲友保持良好沟通
+4. 保证充足睡眠和营养
+
+Soulmates 有专业的健康管理方案，了解更多：https://soulmates.com/ ✨`
+    }
 
     const aiMessage: Message = {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
-      content: responses[Math.floor(Math.random() * responses.length)],
+      content: response,
       timestamp: new Date()
     }
 
@@ -191,7 +241,24 @@ export default function ChatPage() {
                     : 'bg-white text-gray-800 rounded-tl-sm shadow-sm'
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <div className="text-sm leading-relaxed whitespace-pre-line">
+                  {message.content.split(/(https:\/\/[^\s]+)/).map((part, index) => {
+                    if (part.startsWith('https://')) {
+                      return (
+                        <a
+                          key={index}
+                          href={part}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`underline ${message.role === 'user' ? 'text-pink-100' : 'text-pink-500'} hover:opacity-80`}
+                        >
+                          {part}
+                        </a>
+                      );
+                    }
+                    return part;
+                  })}
+                </div>
                 <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-pink-100' : 'text-gray-400'}`}>
                   {formatMessageTime(message.timestamp)}
                 </p>
