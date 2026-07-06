@@ -80,6 +80,7 @@ export default function SalesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const isStoppingRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
@@ -91,6 +92,7 @@ export default function SalesPage() {
   }, [messages])
 
   const startRecording = () => {
+    isStoppingRef.current = false
     setIsRecording(true)
     setRecordingTime(0)
 
@@ -105,7 +107,7 @@ export default function SalesPage() {
       recognitionRef.current.interimResults = true
       recognitionRef.current.lang = 'zh-CN'
 
-      let finalTranscript = ''
+      recognitionRef.current.finalTranscript = ''
       let interimTranscript = ''
 
       recognitionRef.current.onresult = (event: any) => {
@@ -113,7 +115,7 @@ export default function SalesPage() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript
           if (event.results[i].isFinal) {
-            finalTranscript += transcript
+            recognitionRef.current.finalTranscript += transcript
           } else {
             interimTranscript += transcript
           }
@@ -139,6 +141,8 @@ export default function SalesPage() {
   }
 
   const stopRecording = () => {
+    if (isStoppingRef.current) return
+    isStoppingRef.current = true
     setIsRecording(false)
     
     if (recordingTimerRef.current) {
@@ -175,7 +179,7 @@ export default function SalesPage() {
   }
 
   const handleVoiceInput = async (text: string) => {
-    if (!text.trim()) return
+    if (!text.trim() || isProcessing) return
 
     const userMessage: Message = {
       id: Date.now().toString(),

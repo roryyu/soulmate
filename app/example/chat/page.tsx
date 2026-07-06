@@ -24,6 +24,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const isStoppingRef = useRef(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -34,6 +35,7 @@ export default function ChatPage() {
   }, [messages])
 
   const startRecording = () => {
+    isStoppingRef.current = false
     setIsRecording(true)
     setRecordingTime(0)
 
@@ -48,7 +50,7 @@ export default function ChatPage() {
       recognitionRef.current.interimResults = true
       recognitionRef.current.lang = 'zh-CN'
 
-      let finalTranscript = ''
+      recognitionRef.current.finalTranscript = ''
       let interimTranscript = ''
 
       recognitionRef.current.onresult = (event: any) => {
@@ -56,7 +58,7 @@ export default function ChatPage() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript
           if (event.results[i].isFinal) {
-            finalTranscript += transcript
+            recognitionRef.current.finalTranscript += transcript
           } else {
             interimTranscript += transcript
           }
@@ -82,8 +84,10 @@ export default function ChatPage() {
   }
 
   const stopRecording = () => {
+    if (isStoppingRef.current) return
+    isStoppingRef.current = true
     setIsRecording(false)
-    
+
     if (recordingTimerRef.current) {
       clearInterval(recordingTimerRef.current)
       recordingTimerRef.current = null
@@ -91,7 +95,7 @@ export default function ChatPage() {
 
     if (recognitionRef.current) {
       recognitionRef.current.stop()
-      
+
       setTimeout(() => {
         if (recognitionRef.current.finalTranscript) {
           handleVoiceInput(recognitionRef.current.finalTranscript)
@@ -118,7 +122,7 @@ export default function ChatPage() {
   }
 
   const handleVoiceInput = async (text: string) => {
-    if (!text.trim()) return
+    if (!text.trim() || isProcessing) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
