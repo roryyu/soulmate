@@ -547,6 +547,19 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 }
 
+// ========== 评价设置模块 ==========
+
+model EvaluationSetting {
+  id        String   @id @default(cuid())
+  type      String?  // 评价类型，如 "RESEARCH_PROJECT", "DOCUMENT", "AI_RESPONSE" 等
+  question  String?  // 评价问题
+  options   String?  // 选项（JSON格式，如 ["选项A", "选项B", "选项C"]）
+  weight    Decimal  @db.Decimal(5, 2) @default(1.00) // 权重
+  order     Int      @default(0) // 排序
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // ========== 问题反馈模块 ==========
 
 // 问题类型表
