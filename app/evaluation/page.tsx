@@ -472,7 +472,7 @@ function buildUserMessage(obj: any,info:any): string {
   根据测试结果的量化分析，集合用户姓名${info.name}，${info.birthDate?'出生日期'+info.birthDate:''}，${info.location?'所在地区'+info.location:''}，和当前时令${new Date().toLocaleString()}，按以下方式输出总结报告，现代汉语表达，如果引用古典论述要解释，行文自然不要有框架模版感觉，不要用表情符号
   # 总体状态
   {一句话总结测试结果，有启发性，吸引人继续阅读报告}
-  # 能力分析
+  # 能量分析
   {按五行五个维度，细致深入分析，要有理有据和专业性，不能只说结果，要分析出每个维度的失衡状态，以及失衡的原因和影响}
   ## 金分析
   {分析金维度的平衡或失衡状态，以及失衡的原因和影响}
@@ -510,6 +510,9 @@ export default function EvaluationPage() {
   const [aiResult, setAiResult] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamError, setStreamError] = useState<string | null>(null)
+  // 图片生成相关状态
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   // 音乐相关状态
   const [musicUrl, setMusicUrl] = useState<string | null>(null)
   const [musicElement, setMusicElement] = useState<HTMLAudioElement | null>(null)
@@ -528,6 +531,53 @@ export default function EvaluationPage() {
       console.error('加载评价设置失败:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 生成五行能量图片
+  async function generateFiveElementsImage(fullAnalysis: string = '') {
+    setIsGeneratingImage(true)
+
+    try {
+      const message = [
+        {
+          role: 'user',
+          content: `根据以下五行能量分析结果,总结符合这个结果的五行的意象描述，20字以内，五行分析结果：${fullAnalysis}`,
+        },
+      ]
+      const postData = {
+        messages: message,
+      }
+      const responseFirst = await fetch('/api/ai/tuning', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      })
+      const resResult=await responseFirst.json()
+      const prompt = `根据这个意象描述:${resResult.response}
+      生成一张具有中国传统风格的艺术图片：
+      风格要求：中国风，水墨丹青，意境优美，画面平衡，富有禅意寓意，表达意象。`
+
+      const response = await fetch('/api/ai/image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.imageUrl) {
+          setGeneratedImage(data.imageUrl)
+        }
+      }
+    } catch (error) {
+      console.error('生成图片失败:', error)
+    } finally {
+      setIsGeneratingImage(false)
     }
   }
 
@@ -561,6 +611,8 @@ export default function EvaluationPage() {
     setIsStreaming(true)
     setStreamError(null)
     setAiResult('')
+    
+    let fullResult = '' // 本地变量存储完整的分析结果
 
     try {
       const response = await fetch('/api/ai/tuning', {
@@ -598,11 +650,14 @@ export default function EvaluationPage() {
               const data = JSON.parse(line.slice(6))
               
               if (data.type === 'chunk') {
-                // 流式输出片段
-                setAiResult(prev => prev + data.data)
+                // 流式输出片段 - 同时更新本地变量和状态
+                fullResult += data.data
+                setAiResult(fullResult)
               } else if (data.type === 'done') {
                 // 完成
                 setIsStreaming(false)
+                // 生成五行能量图片（使用本地存储的完整分析结果）
+                generateFiveElementsImage(fullResult)
               } else if (data.type === 'error') {
                 // 错误
                 setStreamError(data.error || 'AI 生成失败')
@@ -766,6 +821,9 @@ export default function EvaluationPage() {
     setAiResult('')
     setResultData(null)
     setStreamError(null)
+    // 重置图片生成状态
+    setGeneratedImage(null)
+    setIsGeneratingImage(false)
     // 重置音乐状态
     setMusicUrl(null)
   }
@@ -1024,6 +1082,26 @@ export default function EvaluationPage() {
                 暂无分析结果
               </div>
             )}
+            {isGeneratingImage ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div
+                    className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin mb-3"
+                    style={{ borderColor: '#d6cbad', borderTopColor: 'transparent' }}
+                  />
+                  <span style={{ color: '#a08060' }}>正在绘制您的专属五行能量意象...</span>
+                </div>
+            ):null}
+            {generatedImage ? (
+                <div className="relative rounded-xl overflow-hidden shadow-md">
+                  <img
+                    src={generatedImage}
+                    alt="五行能量图谱"
+                    className="w-full h-auto object-cover"
+                    style={{ borderRadius: '0.75rem' }}
+                  />
+                </div>
+            ) : null}
+
           </div>
 
           {/* 重新测评按钮 */}

@@ -19,6 +19,8 @@ const nextConfig = {
     }
     return config
   },
+  // webpack-hmr 热模块替换开关，从环境变量读取，默认关闭
+
   // Next.js 14 已废弃 api 配置项
   // - 流式响应默认支持
   // - bodyParser 可在具体路由中配置 export const dynamic = 'force-dynamic'

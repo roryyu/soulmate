@@ -530,3 +530,63 @@ export async function createEmbedding(
 export async function embedText(text: string | string[]): Promise<number[][]> {
   return createEmbedding(Array.isArray(text) ? text : [text]);
 }
+
+
+
+export async function generateImageBySize(prompt: string, size: string = '2048*2048'): Promise<any> {
+  try {
+    const dashscopeAntropicBaseUrl = process.env.DASHSCOPE_BASE_ANTHROPIC_URL || 'https://token-plan.cn-beijing.maas.aliyuncs.com/api/v1';
+    const apiUrl = dashscopeAntropicBaseUrl+'/services/aigc/multimodal-generation/generation';
+    const apiKey = process.env.ARK_API_KEY;
+    const imageModel = process.env.QWEN_IMAGE_MODEL || 'qwen-image-2.0-pro';
+
+    if (!apiKey) {
+      throw new Error('ARK_API_KEY 未配置，请在 .env 中设置');
+    }
+
+    const payload = {
+      model: imageModel,
+      input: {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ]
+      },
+      parameters: {
+        negative_prompt: '低分辨率，低画质，画面过饱和，无细节，过度光滑，构图混乱',
+        prompt_extend: false,
+        watermark: false,
+        n: 1,
+        size: size
+      }
+    };
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API 请求失败: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    const imageUrl = result.output.choices[0]?.message?.content[0]?.image;
+    console.log("生成图片地址:", imageUrl);
+    return imageUrl;
+  } catch (error: any) {
+    console.error("API 调用失败:", error.message);
+    throw error;
+  }
+}
