@@ -13,13 +13,17 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'pdfjs-dist', 'mammoth'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (isServer) {
       config.externals = [...(config.externals || []), 'pdfjs-dist']
     }
+    if (dev && process.env.WEBPACK_HMR !== 'true') {
+      config.plugins = config.plugins.filter(
+        (plugin) => plugin.constructor.name !== 'HotModuleReplacementPlugin'
+      )
+    }
     return config
   },
-  // webpack-hmr 热模块替换开关，从环境变量读取，默认关闭
 
   // Next.js 14 已废弃 api 配置项
   // - 流式响应默认支持

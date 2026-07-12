@@ -493,6 +493,17 @@ function buildUserMessage(obj: any,info:any): string {
   return userMessage;
 }
 
+
+const imagePrompts=[
+  "唐代青绿山水风格，李思训笔法，金碧辉煌，勾勒填彩，矿物颜料，繁密富丽，长卷构图，盛唐气象，敦煌壁画色彩，中国古代绘画杰作，8k分辨率，极其精细。",
+"北宋范宽风格，全景式山水，雨点皴，山顶好作密林，溪水潺潺，雾气蒸腾，北方深秋景色，绢本水墨，雄浑壮阔，高远构图，宋代院体画，大师之作，超高清。",
+"南宋马远风格，水墨苍劲，大斧劈皴，边角之景，一湾清水，半边古木，孤寂清幽，禅意，纸本水墨，大量留白，文人雅趣，宋代美学，杰作。",
+"元代黄公望笔意，披麻皴，浅绛设色，干笔皴擦，林木幽深，寒潭映翠，隐士情怀，荒寒萧疏，元四家风格，文人画，古意盎然，高清扫描质感。",
+"战国帛画风格，朱砂与石青设色，线条古拙，龙凤图腾，云气缭绕，神秘诡谲，祭祀感，楚文化风格，考古复原，破损绢本质感，极高的艺术价值。",
+"清代八大山人风格，极简水墨，鱼鸟之态，翻白眼，枯木寒水，构图奇崛，笔墨凝练，冷逸孤傲，大写意，中国美术馆藏级，超清细节。"
+]
+
+
 export default function EvaluationPage() {
   const [loading, setLoading] = useState(true)
   const [settings, setSettings] = useState<EvaluationSetting[]>([])
@@ -556,9 +567,11 @@ export default function EvaluationPage() {
         body: JSON.stringify(postData),
       })
       const resResult=await responseFirst.json()
-      const prompt = `根据这个意象描述:${resResult.response}
-      生成一张具有中国传统风格的艺术图片：
-      风格要求：中国风，水墨丹青，意境优美，画面平衡，富有禅意寓意，表达意象。`
+
+
+      const randomPrompt = imagePrompts[Math.floor(Math.random() * imagePrompts.length)]
+      const prompt = `主题:${resResult.response}
+      生成一张以下风格的艺术图片：${randomPrompt}`
 
       const response = await fetch('/api/ai/image', {
         method: 'POST',
