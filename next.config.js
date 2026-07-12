@@ -13,18 +13,12 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'pdfjs-dist', 'mammoth'],
   },
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = [...(config.externals || []), 'pdfjs-dist']
     }
-    if (dev && process.env.WEBPACK_HMR !== 'true') {
-      config.plugins = config.plugins.filter(
-        (plugin) => plugin.constructor.name !== 'HotModuleReplacementPlugin'
-      )
-    }
     return config
   },
-
   // Next.js 14 已废弃 api 配置项
   // - 流式响应默认支持
   // - bodyParser 可在具体路由中配置 export const dynamic = 'force-dynamic'
