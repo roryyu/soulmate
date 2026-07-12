@@ -85,6 +85,7 @@ function FiveElementsAnimation() {
     ]
 
     function animate() {
+      if (!ctx || !canvas) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       const color = colors[currentIndex]
@@ -1069,7 +1070,7 @@ export default function EvaluationPage() {
                     stream: true,
                     messages: [
                       { role: 'system', content: EVALUATION_SYSTEM_PROMPT },
-                      { role: 'user', content: buildUserMessage(resultData) },
+                      { role: 'user', content: buildUserMessage(resultData, basicInfo) },
                     ],
                   })}
                   className="text-sm underline"

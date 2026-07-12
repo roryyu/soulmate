@@ -32,6 +32,8 @@ export async function GET(
       key: tocData.key,
     });
 
+    // 将 Buffer 转换为 Uint8Array 以兼容 NextResponse 类型
+    const contentArray = new Uint8Array(result.content)
     const range = request.headers.get('range');
 
     if (range) {
@@ -39,7 +41,7 @@ export async function GET(
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : result.content.length - 1;
       const chunksize = end - start + 1;
-      const chunk = result.content.slice(start, end + 1);
+      const chunk = contentArray.slice(start, end + 1);
 
       return new NextResponse(chunk, {
         status: 206,
@@ -52,7 +54,7 @@ export async function GET(
       });
     }
 
-    return new NextResponse(result.content, {
+    return new NextResponse(contentArray, {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Content-Length': result.content.length.toString(),

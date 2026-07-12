@@ -88,6 +88,11 @@ export async function POST(request: NextRequest) {
     const instruction = prompt
     // 下载所有关联的音频文件并转为 base64
     const BUCKET_NAME = process.env.TOS_BUCKET
+
+    if (!BUCKET_NAME) {
+      throw new Error('TOS_BUCKET 环境变量未配置')
+    }
+
     const musicFiles: MusicFileInfo[] = audioFiles
 
     let etag: string | null = null

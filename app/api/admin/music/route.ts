@@ -162,6 +162,10 @@ export async function POST(request: NextRequest) {
         const key = `toc-data/${fileId}.mp3`
         const BUCKET_NAME = process.env.TOS_BUCKET
 
+        if (!BUCKET_NAME) {
+          throw new Error('TOS_BUCKET 环境变量未配置')
+        }
+
         const uploadResult = await uploadFile({
           bucket: BUCKET_NAME,
           key,

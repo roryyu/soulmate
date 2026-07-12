@@ -34,7 +34,10 @@ export async function GET(
 
     const fileName = tocData.key.split('/').pop() || 'download';
 
-    return new NextResponse(result.content, {
+    // 将 Buffer 转换为 Uint8Array 以兼容 NextResponse 类型
+    const contentArray = new Uint8Array(result.content)
+
+    return new NextResponse(contentArray, {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,

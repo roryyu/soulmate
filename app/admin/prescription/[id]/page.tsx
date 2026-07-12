@@ -9,7 +9,7 @@ import {
 import AdminPageHeader from '@/components/layout/AdminPageHeader'
 
 type Prescription = {
-  id: string; name: string | null; prompt: string | null; arguments: string | null; etag: string | null; createdAt: Date; updatedAt: Date
+  id: string; key: string | null; name: string | null; prompt: string | null; arguments: string | null; etag: string | null; createdAt: Date; updatedAt: Date
 }
 type TocDataInfo = { id: string; name: string | null }
 

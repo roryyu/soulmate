@@ -279,18 +279,13 @@ export async function listObjects(params: ListObjectsParams): Promise<ObjectInfo
   try {
     const client = getOSSClient();
 
-    const options: Record<string, any> = {};
-    if (params.prefix) {
-      options.prefix = params.prefix;
-    }
-    if (params.maxKeys) {
-      options['max-keys'] = params.maxKeys;
-    }
-    if (params.marker) {
-      options.marker = params.marker;
-    }
+    const options = {
+      prefix: params.prefix,
+      'max-keys': params.maxKeys || 1000,
+      marker: params.marker,
+    };
 
-    const result = await client.list(options);
+    const result = await client.list(options, {});
 
     return (result.objects || []).map((item: any) => ({
       key: item.name,
@@ -331,12 +326,11 @@ export async function createBucket(params: CreateBucketParams): Promise<boolean>
   try {
     const client = getOSSClient();
 
-    const options: Record<string, any> = {};
-    if (params.region) {
-      options.location = params.region;
-    }
+    const options = {
+      location: params.region,
+    };
 
-    await client.putBucket(params.bucket, options);
+    await client.putBucket(params.bucket, options as any);
 
     return true;
   } catch (error) {
@@ -371,7 +365,7 @@ export async function listBuckets(): Promise<Array<{ name: string; region: strin
   try {
     const client = getOSSClient();
 
-    const result = await client.listBuckets();
+    const result = await (client as any).listBuckets();
 
     return (result.buckets || []).map((bucket: any) => ({
       name: bucket.name,
