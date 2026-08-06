@@ -728,7 +728,6 @@ function CollectionScreen({ onComplete }: { onComplete: () => void }) {
       </div>
       <div className="sensor-status">
         <span />
-        眼罩硬件接口等待接入 · 当前使用纯问卷模式
       </div>
     </main>
   )
