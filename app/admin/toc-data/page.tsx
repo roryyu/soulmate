@@ -39,8 +39,6 @@ type AllLabel = {
   count: number
 }
 
-const MAX_LABELS_PER_FILE = 8
-
 async function fetchTocDataList(): Promise<TocData[]> {
   const res = await fetch('/api/admin/toc-data')
   if (!res.ok) throw new Error('获取文件列表失败')
@@ -167,10 +165,6 @@ export default function AdminTocDataPage() {
     if (!trimmed) return
     if (draftLabels.some((l) => l.toLowerCase() === trimmed.toLowerCase())) {
       setLabelInput('')
-      return
-    }
-    if (draftLabels.length >= MAX_LABELS_PER_FILE) {
-      alert(`最多添加 ${MAX_LABELS_PER_FILE} 个标签`)
       return
     }
     setDraftLabels([...draftLabels, trimmed])

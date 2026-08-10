@@ -8,11 +8,9 @@ import { LABEL_PROMPTS } from '@/lib/prompts';
 
 /** 单个标签最大长度 */
 const MAX_LABEL_LENGTH = 20;
-/** 单个文件最大标签数 */
-const MAX_LABELS_PER_FILE = 8;
 
 /**
- * 归一化标签列表：去除空白、过滤空值、去重（忽略大小写）、限制长度与数量
+ * 归一化标签列表：去除空白、过滤空值、去重（忽略大小写）、限制单个标签长度
  */
 export function normalizeLabels(labels: unknown): string[] {
   if (!Array.isArray(labels)) return [];
@@ -25,7 +23,6 @@ export function normalizeLabels(labels: unknown): string[] {
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(name);
-    if (result.length >= MAX_LABELS_PER_FILE) break;
   }
   return result;
 }
