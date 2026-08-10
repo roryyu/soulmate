@@ -648,6 +648,31 @@ model TocData {
   updatedAt DateTime @updatedAt
 
   researchProjects ResearchProject[]
+  tocDataLabels    TocDataLabel[]
+}
+
+// 标签表
+model Label {
+  id        String   @id @default(cuid())
+  name      String   @unique // 标签名称
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tocDataLabels TocDataLabel[]
+}
+
+// 标签与 TocData 的关系表（多对多）
+model TocDataLabel {
+  id        String   @id @default(cuid())
+  tocDataId String
+  labelId   String
+  createdAt DateTime @default(now())
+
+  tocData TocData @relation(fields: [tocDataId], references: [id], onDelete: Cascade)
+  label   Label   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([tocDataId, labelId])
+  @@index([labelId])
 }
 
 // ========== 处方模块 ==========

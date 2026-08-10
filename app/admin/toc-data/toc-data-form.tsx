@@ -40,7 +40,7 @@ export default function TocDataForm() {
 
     setLoading(true);
     setError('');
-    setUploadProgress('正在上传文件...');
+    setUploadProgress('正在上传文件，AI 正在自动生成标签...');
 
     try {
       const formData = new FormData();

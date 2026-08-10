@@ -780,6 +780,31 @@ ${
 // 导出所有 prompt 便于统一引用
 // ============================================================================
 
+// ============================================================================
+// 7. 文件标签模块
+// ============================================================================
+
+export const LABEL_PROMPTS = {
+  // 根据文件名生成标签 - 系统提示
+  SYSTEM: `你是一位文件标签助手，擅长根据文件名推断文件的内容主题与用途，并生成简洁、准确的标签。你必须返回严格的JSON对象格式。`,
+
+  // 根据文件名生成标签 - 用户提示
+  USER: (fileName: string) => `请根据以下文件名生成标签：
+
+文件名：${fileName}
+
+要求：
+- 生成 3-5 个简洁的标签，能反映文件的内容主题、用途、类型或适用场景
+- 每个标签为 2-8 个字符的词语，不包含标点符号和多余解释
+- 标签之间含义不重复
+
+# 输出格式：必须返回严格的 JSON 对象格式，包含"labels"字段。
+请直接输出 JSON 对象，不要有其他解释文字。格式如下：
+{"labels": ["标签1", "标签2", "标签3"]}
+
+只返回 json，不要其他任何内容，不需要返回\`\`\`json\`\`\``,
+}
+
 export const ALL_PROMPTS = {
   IDEATION: IDEATION_PROMPTS,
   SEARCH: SEARCH_PROMPTS,
@@ -787,6 +812,7 @@ export const ALL_PROMPTS = {
   WRITING: WRITING_PROMPTS,
   POLISHING: POLISHING_PROMPTS,
   OUTLINE: OUTLINE_PROMPTS,
+  LABEL: LABEL_PROMPTS,
 }
 
 export default ALL_PROMPTS

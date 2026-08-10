@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 import { uploadFile } from '@/lib/oss';
 import { v4 as uuidv4 } from 'uuid';
+import { generateLabelsFromFileName, syncTocDataLabels } from '@/lib/toc-data-labels';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,9 +15,15 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
-  const tocDataList = await prisma.tocData.findMany({
+  const list = await prisma.tocData.findMany({
     orderBy: { createdAt: 'desc' },
+    include: { tocDataLabels: { include: { label: true } } },
   });
+
+  const tocDataList = list.map(({ tocDataLabels, ...item }) => ({
+    ...item,
+    labels: tocDataLabels.map((t) => ({ id: t.label.id, name: t.label.name })),
+  }));
 
   return NextResponse.json({ success: true, tocDataList });
 }
@@ -57,7 +64,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, tocData });
+    // 用文件名请求大模型自动生成标签（失败不阻断上传）
+    let labels: Array<{ id: string; name: string }> = [];
+    try {
+      const generated = await generateLabelsFromFileName(
+        file.name,
+        auth.session.user.id,
+        auth.session.user.name
+      );
+      if (generated.length > 0) {
+        labels = await syncTocDataLabels(tocData.id, generated);
+      }
+    } catch (error) {
+      console.error('自动生成标签失败:', error);
+    }
+
+    return NextResponse.json({ success: true, tocData: { ...tocData, labels } });
   } catch (error) {
     console.error('上传文件错误:', error);
     return NextResponse.json(

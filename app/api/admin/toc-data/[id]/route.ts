@@ -16,13 +16,21 @@ export async function GET(
 
   const tocData = await prisma.tocData.findUnique({
     where: { id: params.id },
+    include: { tocDataLabels: { include: { label: true } } },
   });
 
   if (!tocData) {
     return NextResponse.json({ error: '记录不存在' }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true, tocData });
+  const { tocDataLabels, ...rest } = tocData;
+  return NextResponse.json({
+    success: true,
+    tocData: {
+      ...rest,
+      labels: tocDataLabels.map((t) => ({ id: t.label.id, name: t.label.name })),
+    },
+  });
 }
 
 export async function DELETE(
