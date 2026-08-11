@@ -349,7 +349,7 @@ export default function AdminTocDataPage() {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[16px] font-semibold text-[#222222] truncate">
+                    <h3 className="text-[16px] font-semibold text-[#222222] break-all">
                       {item.name || getFileName(item.key)}
                     </h3>
                     <p className="text-[13px] text-[#6a6a6a]">{formatDate(item.createdAt)}</p>
@@ -378,45 +378,45 @@ export default function AdminTocDataPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="relative">
-                      <Input
-                        type="text"
-                        value={labelInput}
-                        onChange={(e) => setLabelInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            addDraftLabel(labelInput)
-                          }
-                        }}
-                        placeholder="输入新标签后回车，或从下方已用标签中选择"
-                        className="h-9 text-[13px] border-[#dddddd] rounded-lg focus:border-[#222222] focus:ring-[#222222]"
-                      />
-                      {suggestions.length > 0 && (
-                        <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white border border-[#dddddd] rounded-lg shadow-lg max-h-40 overflow-y-auto p-1">
-                          <p className="text-[11px] text-[#929292] px-2 py-1">使用过的标签</p>
-                          {suggestions.map((l) => (
-                            <button
-                              key={l.id}
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                addDraftLabel(l.name)
-                              }}
-                              className="w-full text-left px-2 py-1.5 text-[13px] text-[#222222] hover:bg-[#f7f7f7] rounded flex items-center justify-between"
-                            >
-                              <span>{l.name}</span>
-                              <span className="text-[11px] text-[#929292]">{l.count} 个文件</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
                     <div className="flex gap-2">
+                      <div className="relative flex-1 min-w-0">
+                        <Input
+                          type="text"
+                          value={labelInput}
+                          onChange={(e) => setLabelInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              addDraftLabel(labelInput)
+                            }
+                          }}
+                          placeholder="输入新标签后回车，或从下方已用标签中选择"
+                          className="h-9 text-[13px] border-[#dddddd] rounded-lg focus:border-[#222222] focus:ring-[#222222]"
+                        />
+                        {suggestions.length > 0 && (
+                          <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white border border-[#dddddd] rounded-lg shadow-lg max-h-40 overflow-y-auto p-1">
+                            <p className="text-[11px] text-[#929292] px-2 py-1">使用过的标签</p>
+                            {suggestions.map((l) => (
+                              <button
+                                key={l.id}
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault()
+                                  addDraftLabel(l.name)
+                                }}
+                                className="w-full text-left px-2 py-1.5 text-[13px] text-[#222222] hover:bg-[#f7f7f7] rounded flex items-center justify-between"
+                              >
+                                <span>{l.name}</span>
+                                <span className="text-[11px] text-[#929292]">{l.count} 个文件</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="flex-1 h-8 rounded-lg border border-[#dddddd] text-[13px] text-[#222222] hover:border-[#222222] transition-colors"
+                        className="shrink-0 h-9 px-4 rounded-lg border border-[#dddddd] text-[13px] text-[#222222] hover:border-[#222222] transition-colors"
                       >
                         取消
                       </button>
@@ -424,7 +424,7 @@ export default function AdminTocDataPage() {
                         type="button"
                         onClick={() => handleSaveLabels(item)}
                         disabled={savingLabels}
-                        className="flex-1 h-8 rounded-lg bg-[#ff385c] text-white text-[13px] font-medium hover:bg-[#e00b41] transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                        className="shrink-0 h-9 px-4 rounded-lg bg-[#ff385c] text-white text-[13px] font-medium hover:bg-[#e00b41] transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
                       >
                         {savingLabels && <Loader2 className="w-3 h-3 animate-spin" />}
                         保存标签

@@ -1,166 +1,254 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, File, X, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Upload, X } from 'lucide-react';
 
-export default function TocDataForm() {
+/** 上传单个文件到 /api/admin/toc-data（服务端存 TOS 并 AI 生成标签） */
+async function uploadSingleFile(file: File): Promise<void> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/admin/toc-data', { method: 'POST', body: formData });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error ?? '上传失败');
+  }
+}
+
+/** 递归遍历拖拽条目，收集文件夹内所有文件 */
+async function collectFilesFromEntry(entry: FileSystemEntry): Promise<File[]> {
+  if (entry.isFile) {
+    return new Promise((resolve) => {
+      (entry as FileSystemFileEntry).file(
+        (f) => resolve([f]),
+        () => resolve([])
+      );
+    });
+  }
+  if (entry.isDirectory) {
+    const reader = (entry as FileSystemDirectoryEntry).createReader();
+    // readEntries 单次最多返回部分结果，需循环读取直到为空
+    const readAllEntries = (): Promise<FileSystemEntry[]> =>
+      new Promise((resolve) => {
+        const acc: FileSystemEntry[] = [];
+        const readBatch = () => {
+          reader.readEntries(
+            (batch) => {
+              if (batch.length === 0) resolve(acc);
+              else {
+                acc.push(...batch);
+                readBatch();
+              }
+            },
+            () => resolve(acc)
+          );
+        };
+        readBatch();
+      });
+    const children = await readAllEntries();
+    const files: File[] = [];
+    for (const child of children) {
+      files.push(...(await collectFilesFromEntry(child)));
+    }
+    return files;
+  }
+  return [];
+}
+
+/** 从 drop 事件收集文件：优先按文件夹结构遍历，回退为 files 列表 */
+async function collectDroppedFiles(dataTransfer: DataTransfer): Promise<File[]> {
+  const entries = Array.from(dataTransfer.items || [])
+    .map((item) =>
+      typeof item.webkitGetAsEntry === 'function' ? item.webkitGetAsEntry() : null
+    )
+    .filter((entry): entry is FileSystemEntry => entry !== null);
+
+  if (entries.length > 0) {
+    const files: File[] = [];
+    for (const entry of entries) {
+      files.push(...(await collectFilesFromEntry(entry)));
+    }
+    return files;
+  }
+  return Array.from(dataTransfer.files || []);
+}
+
+interface TocDataFormProps {
+  onUploaded?: () => void;
+}
+
+export default function TocDataForm({ onUploaded }: TocDataFormProps) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploadProgress, setUploadProgress] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError('');
+  const addFiles = useCallback((incoming: File[]) => {
+    if (incoming.length === 0) return;
+    setFiles((prev) => {
+      const seen = new Set(prev.map((f) => `${f.name}__${f.size}`));
+      const merged = [...prev];
+      for (const f of incoming) {
+        const key = `${f.name}__${f.size}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(f);
+        }
+      }
+      return merged;
+    });
+  }, []);
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const dropped = await collectDroppedFiles(e.dataTransfer);
+    if (dropped.length === 0) {
+      setError('未检测到可上传的文件');
+      return;
     }
+    setError('');
+    addFiles(dropped);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      setFile(droppedFile);
-      setError('');
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    addFiles(selected);
+    e.target.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) {
-      setError('请选择要上传的文件');
+    if (files.length === 0) {
+      setError('请选择或拖拽要上传的文件');
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
     setError('');
-    setUploadProgress('正在上传文件，AI 正在自动生成标签...');
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/admin/toc-data', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? '上传失败');
-        return;
+    const failed: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setUploadProgress(
+        `正在上传 ${i + 1}/${files.length}：${file.name}，AI 正在自动生成标签...`
+      );
+      try {
+        await uploadSingleFile(file);
+      } catch (err) {
+        console.error('Failed to upload file:', err);
+        failed.push(file.name);
       }
-
-      setUploadProgress('上传成功！');
-      setTimeout(() => {
-        router.push('/admin/toc-data');
-        router.refresh();
-      }, 1000);
-    } catch {
-      setError('网络错误，请重试');
-    } finally {
-      setLoading(false);
     }
-  };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    setIsLoading(false);
+    setUploadProgress('');
+
+    if (failed.length > 0) {
+      setError(`以下文件上传失败：${failed.join('、')}`);
+      setFiles(files.filter((f) => failed.includes(f.name)));
+      return;
+    }
+
+    setFiles([]);
+    if (onUploaded) {
+      onUploaded();
+    } else {
+      router.push('/admin/toc-data');
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="border border-[#dddddd] rounded-[14px] p-6">
+      <div className="space-y-2">
+        <Label htmlFor="file">文件</Label>
         <div
-          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-            file
-              ? 'border-[#222222] bg-[#f7f7f7]'
-              : 'border-[#dddddd] hover:border-[#222222] hover:bg-[#f7f7f7]'
-          }`}
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? 'border-[#222222] bg-[#f7f7f7]'
+              : 'border-[#dddddd] hover:border-[#222222]'
+          }`}
         >
-          <input
-            ref={fileInputRef}
+          <Upload className="w-8 h-8 mx-auto mb-3 text-[#929292]" />
+          <p className="text-[14px] text-[#222222]">点击选择文件，或将文件/文件夹拖拽到此处</p>
+          <p className="text-[12px] text-[#929292] mt-1">
+            拖拽文件夹将自动上传其中所有文件（含子文件夹）
+          </p>
+          <Input
+            id="file"
             type="file"
+            multiple
+            ref={fileInputRef}
             onChange={handleFileChange}
             className="hidden"
-            id="file-upload"
           />
-
-          {file ? (
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-[#f7f7f7] flex items-center justify-center">
-                <File className="w-5 h-5 text-[#222222]" />
-              </div>
-              <div className="text-left">
-                <p className="text-[14px] font-medium text-[#222222]">{file.name}</p>
-                <p className="text-[13px] text-[#6a6a6a]">{formatFileSize(file.size)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setFile(null);
-                  if (fileInputRef.current) fileInputRef.current.value = '';
-                }}
-                className="ml-4 p-2 rounded-lg hover:bg-[#f2f2f2] text-[#6a6a6a] hover:text-[#222222] transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          ) : (
-            <label htmlFor="file-upload" className="cursor-pointer block">
-              <Upload className="w-8 h-8 text-[#929292] mx-auto mb-3" />
-              <p className="text-[14px] font-medium text-[#222222]">点击或拖拽文件到此处上传</p>
-              <p className="text-[13px] text-[#6a6a6a] mt-1">支持任意文件类型</p>
-            </label>
-          )}
         </div>
+
+        {files.length > 0 && (
+          <ul className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+            {files.map((file, index) => (
+              <li
+                key={`${file.name}__${file.size}__${index}`}
+                className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-[#ebebeb] bg-white text-[13px] text-[#222222]"
+              >
+                <span className="break-all">{file.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  disabled={isLoading}
+                  className="shrink-0 text-[#929292] hover:text-[#222222] disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {error && <p className="text-[14px] text-red-600 break-all">{error}</p>}
       </div>
 
-      {error && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[14px]">
-          {error}
-        </div>
-      )}
-
-      {uploadProgress && !error && (
-        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 text-[14px]">
-          {uploadProgress}
-        </div>
-      )}
-
       <div className="flex gap-3">
-        <Link
-          href="/admin/toc-data"
-          className="h-12 px-6 rounded-lg border border-[#dddddd] text-[14px] font-medium text-[#222222] hover:border-[#222222] transition-colors inline-flex items-center gap-2"
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1 h-12 rounded-lg text-[15px]"
+          onClick={() => router.push('/admin/toc-data')}
+          disabled={isLoading}
         >
-          返回
-        </Link>
-        <button
+          取消
+        </Button>
+        <Button
           type="submit"
-          disabled={loading || !file}
-          className="flex-1 h-12 rounded-lg bg-[#ff385c] text-white text-[14px] font-medium hover:bg-[#e00b41] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          disabled={isLoading || files.length === 0}
+          className="flex-1 h-12 bg-[#222222] hover:bg-black rounded-lg text-[15px]"
         >
-          {loading ? (
+          {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              上传中...
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {uploadProgress}
             </>
           ) : (
-            <>
-              <Upload className="w-4 h-4" />
-              上传文件
-            </>
+            `上传${files.length > 0 ? ` ${files.length} 个文件` : ''}`
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );
