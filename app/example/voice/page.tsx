@@ -239,7 +239,7 @@ export default function VoiceTestPage() {
 
         {/* 使用说明 */}
         <div className="mt-8 text-center text-gray-500">
-          <p>按住按钮说话，松开后自动识别</p>
+          <p>请按住按钮说话，松开后自动识别</p>
         </div>
       </div>
     </div>
