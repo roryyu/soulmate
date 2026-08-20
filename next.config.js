@@ -11,11 +11,11 @@ const nextConfig = {
   },
   reactStrictMode: false,
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'pdfjs-dist', 'mammoth', 'sherpa-onnx-node', 'sherpa-onnx-darwin-arm64'],
+    serverComponentsExternalPackages: ['@prisma/client', 'pdfjs-dist', 'mammoth'],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals = [...(config.externals || []), 'pdfjs-dist', 'sherpa-onnx-node', 'sherpa-onnx-darwin-arm64']
+      config.externals = [...(config.externals || []), 'pdfjs-dist']
     }
     return config
   },

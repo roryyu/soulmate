@@ -599,3 +599,19 @@ app/
 | 设计系统 | Airbnb 设计令牌 | 简洁现代，品牌感强 |
 | 认证 | NextAuth v5 Credentials | 双通道（邮箱+手机） |
 | 多租户 | 自建 Tenant 模型 | 灵活可控 |
+
+
+# 设置 ffmpeg-static 二进制镜像
+export FFMPEG_BINARIES_URL=https://cdn.npmmirror.com/binaries/ffmpeg-static
+
+# 顺手把 npm 官方源也换成国内镜像，避免其他包也超时
+npm config set registry https://registry.npmmirror.com
+
+# 加大 npm 的超时和重试，应对网络抖动
+npm config set fetch-retries 5
+npm config set fetch-retry-maxtimeout 120000
+npm config set timeout 120000
+
+# 清理之前失败的残留，重新安装
+rm -rf node_modules/ffmpeg-static
+npm ci
