@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       baseURL: process.env.ASR_BASE_URL,
     });
 
-    // 调用 qwen3-asr-flash 进行语音识别
+    // 调用 qwen3-asr-flash 进行语音识别（阿里云百炼扩展接口，类型用 any绕过）
     const completion = await client.chat.completions.create({
       model: process.env.ASR_MODEL || 'qwen3-asr-flash',
       messages: [
@@ -38,14 +38,14 @@ export async function POST(request: NextRequest) {
                 data: dataUri
               }
             }
-          ]
+          ] as any
         }
       ],
       stream: false,
       asr_options: {
         enable_itn: false
       }
-    });
+    } as any);
 
     const text = JSON.stringify(completion.choices[0]?.message || '');
     
