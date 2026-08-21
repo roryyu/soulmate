@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 export default function VoiceTestPage() {
   const [isRecording, setIsRecording] = useState(false);
@@ -8,9 +8,38 @@ export default function VoiceTestPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recordStartTime, setRecordStartTime] = useState<number>(0);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null); // null表示未检查
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  // 检查麦克风权限
+  useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        // 先检查是否有权限API支持
+        if (navigator.permissions && navigator.permissions.query) {
+          const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          setHasPermission(permissionStatus.state === 'granted');
+          
+          // 监听权限变化
+          permissionStatus.onchange = () => {
+            setHasPermission(permissionStatus.state === 'granted');
+          };
+        } else {
+          // 如果没有权限API，尝试直接获取媒体流来检查
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach(track => track.stop());
+          setHasPermission(true);
+        }
+      } catch (err) {
+        console.error('权限检查失败:', err);
+        setHasPermission(false);
+      }
+    };
+
+    checkPermission();
+  }, []);
 
   const startRecording = useCallback(async () => {
     try {
@@ -44,6 +73,7 @@ export default function VoiceTestPage() {
       setRecordStartTime(Date.now());
     } catch (err) {
       setError('无法访问麦克风: ' + (err as Error).message);
+      setHasPermission(false);
     }
   }, []);
 
@@ -107,24 +137,56 @@ export default function VoiceTestPage() {
         {/* 录音按钮 */}
         <div className="flex justify-center mb-8">
           <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            disabled={loading}
+            onMouseDown={hasPermission ? startRecording : undefined}
+            onMouseUp={hasPermission ? stopRecording : undefined}
+            onTouchStart={hasPermission ? startRecording : undefined}
+            onTouchEnd={hasPermission ? stopRecording : undefined}
+            disabled={loading || hasPermission === false}
             className={`
               w-32 h-32 rounded-full text-white font-bold text-lg
               transition-all duration-200 select-none
               ${isRecording 
                 ? 'bg-red-500 scale-110 shadow-lg animate-pulse' 
-                : 'bg-blue-500 hover:bg-blue-600'
+                : hasPermission === false 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
               }
-              ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+              ${loading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
+            title={hasPermission === false ? '请先授予麦克风权限' : ''}
           >
-            {loading ? '识别中...' : isRecording ? '松开结束' : '按住说话'}
+            {hasPermission === false 
+              ? '无权限' 
+              : loading 
+                ? '识别中...' 
+                : isRecording 
+                  ? '松开结束' 
+                  : '按住说话'
+            }
           </button>
         </div>
+
+        {/* 权限提示 */}
+        {hasPermission === false && (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+            <p className="font-medium">麦克风权限未授予</p>
+            <p className="text-sm mt-1">
+              请在浏览器设置中允许访问麦克风，然后刷新页面重试。
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-2 px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600"
+            >
+              刷新页面
+            </button>
+          </div>
+        )}
+
+        {hasPermission === null && (
+          <div className="text-center text-gray-500 mb-4">
+            正在检查麦克风权限...
+          </div>
+        )}
 
         {/* 错误提示 */}
         {error && (

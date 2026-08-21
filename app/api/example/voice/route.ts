@@ -60,3 +60,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+//https://help.aliyun.com/zh/model-studio/qwen-asr-api-reference?spm=a2c4g.11186623.help-menu-2400256.d_2_5_0_5.7e84984ceEUPSP&scm=20140722.H_1000000041559._.OR_help-T_cn~zh-V_1#%E8%BE%93%E5%85%A5%E5%86%85%E5%AE%B9-base64%E7%BC%96%E7%A0%81%E7%9A%84%E9%9F%B3%E9%A2%91%E6%96%87%E4%BB%B6-h4
