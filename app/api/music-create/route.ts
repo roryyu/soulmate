@@ -17,7 +17,9 @@ if (ffmpeg) {
 }
 
 const MUSIC_DIR = join(process.cwd(), 'music')
-const data = [
+
+interface DataItem { id: string; base: string; noise: string | null; info: string; type: string }
+const data: DataItem[][] = [
     [
         // 扫脸
         {id:'0001',base:'BASE002',noise:'NB02',info:'心跳快',type:'1'},
@@ -86,7 +88,7 @@ const musicDurations={
 interface MusicItem {
   id: string
   base: string
-  noise: string
+  noise: string | null
   info: string
   type: string
   det?: number
