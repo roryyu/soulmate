@@ -37,7 +37,7 @@ const data = [
         {id:'0012',base:'BASE002',noise:'NB03',info:'很累、耗竭没精神',type:'5'},
         {id:'0013',base:'BASE005',noise:'NB01',info:'很累、耗竭没精神',type:'5'},
         {id:'0014',base:'BASE005',noise:'NB03',info:'很累、耗竭没精神',type:'5'},
-        {id:'0015',base:'BASE003',noise:'',info:'脑子思虑多想得多',type:'6'},
+        {id:'0015',base:'BASE003',noise:null,info:'脑子思虑多想得多',type:'6'},
     ],
     [
         // 量表
@@ -54,12 +54,13 @@ const data = [
     ],
     [
         // 自选
-        {id:'0026',base:'BASE001',noise:'NA01',info:'生气、焦虑',type:'12'},
-        {id:'0027',base:'BASE004',noise:'NA01',info:'生气、焦虑',type:'12'},
-        {id:'0028',base:'BASE002',noise:'NB02',info:'悲伤、麻木压抑',type:'13'},
-        {id:'0029',base:'BASE002',noise:'NB03',info:'悲伤、麻木压抑',type:'13'},
-        {id:'0030',base:'BASE005',noise:'NB02',info:'悲伤、麻木压抑',type:'13'},
-        {id:'0031',base:'BASE005',noise:'NB03',info:'悲伤、麻木压抑',type:'13'},
+        {id:'0026',base:'BASE001',noise:'NA01',info:'愤怒',type:'12'},
+        {id:'0027',base:'BASE002',noise:'NB02',info:'悲伤',type:'13'},
+        {id:'0028',base:'BASE002',noise:'NB03',info:'悲伤',type:'13'},
+        {id:'0029',base:'BASE003',noise:'NA01',info:'焦虑',type:'14'},
+        {id:'0030',base:'BASE004',noise:null,info:'快乐',type:'15'},
+        {id:'0031',base:'BASE005',noise:'NB02',info:'麻木',type:'16'},
+        {id:'0032',base:'BASE005',noise:'NB03',info:'麻木',type:'16'},
     ],
 ]
 const times=[
