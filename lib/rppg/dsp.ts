@@ -146,12 +146,17 @@ export function ifft(re: Float64Array, im: Float64Array): void {
   }
 }
 
-/** FFT 域带通滤波 + 可选 Wiener 软增益 */
+/**
+ * FFT 域带通滤波：升余弦过渡带（宽 trans Hz）+ 可选 Wiener 软增益。
+ * 理想砖墙（0/1）增益等效于时域与 sinc 卷积，产生吉布斯振铃，
+ * 会扭曲脉搏波形态（尤其信号两端）并扰动峰位时序；平滑滚降可基本消除。
+ */
 export function bandpassFFT(
   sig: Float64Array,
   fs: number,
   low: number,
   high: number,
+  trans = 0.25,
   wiener = false,
 ): Float64Array {
   const n = nextPow2(sig.length);
@@ -170,10 +175,17 @@ export function bandpassFFT(
     }
   }
 
+  const gainAt = (f: number): number => {
+    if (f < low - trans || f > high + trans) return 0;
+    if (f >= low && f <= high) return 1;
+    const d = f < low ? (low - f) / trans : (f - high) / trans;
+    return 0.5 * (1 + Math.cos(Math.PI * d));
+  };
+
   for (let k = 0; k <= n / 2; k++) {
     const f = (k * fs) / n;
     const mk = n - k;
-    let gain = f >= low && f <= high ? 1 : 0;
+    let gain = gainAt(f);
     if (gain && wiener && peakP > 0) {
       const p = re[k] * re[k] + im[k] * im[k];
       const snr = p / (peakP * 0.05 + 1e-9);
@@ -217,5 +229,17 @@ export function dominantFreq(
     }
   }
   if (peakK < 0) return { freq: 0, purity: 0 };
-  return { freq: (peakK * fs) / n, purity: bandP > 0 ? peakP / bandP : 0 };
+  // 抛物线插值亚-bin 频率：短窗下 bin 量化可达 3+ bpm，直接取整峰是 HR 跳变的主因之一
+  let freq = (peakK * fs) / n;
+  if (peakK > 1 && peakK < n / 2 - 1) {
+    const pAt = (k: number) => re[k] * re[k] + im[k] * im[k];
+    const p0 = pAt(peakK - 1);
+    const p2 = pAt(peakK + 1);
+    const denom = p0 - 2 * peakP + p2;
+    if (denom < 0) {
+      const delta = clamp((0.5 * (p0 - p2)) / denom, -0.5, 0.5);
+      freq = ((peakK + delta) * fs) / n;
+    }
+  }
+  return { freq, purity: bandP > 0 ? peakP / bandP : 0 };
 }

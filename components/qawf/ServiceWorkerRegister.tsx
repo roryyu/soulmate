@@ -2,7 +2,7 @@
 
 // QAWF · Service Worker 注册（v2）
 // 仅在浏览器且生产/安全上下文注册；缓存 TF.js 模型权重实现二次离线可用。
-// 注册失败不影响主流程（rPPG 仍可联网加载模型）。
+// 注册失败不影响主流程（仍可联网加载模型）。
 
 import { useEffect } from 'react';
 

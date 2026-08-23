@@ -5,7 +5,7 @@ import ServiceWorkerRegister from '@/components/qawf/ServiceWorkerRegister';
 
 export const metadata: Metadata = {
   title: 'Soulmates · 面部生理指标测量',
-  description: '基于面部视频 rPPG 的心率/呼吸/血氧/HRV 测量',
+  description: '基于面部视频的心率/呼吸/血氧/HRV 测量',
 };
 
 export const viewport: Viewport = {
@@ -23,7 +23,7 @@ export default function QawfLayout({ children }: { children: ReactNode }) {
           <img src="/logo.jpg" alt="Soulmates" className="logo" />
           <div className="brand-txt">
             <b>Soulmates</b>
-            <small>rPPG 面部生理测量</small>
+            <small>面部生理测量</small>
           </div>
         </div>
         <span className="ver">v0.3</span>

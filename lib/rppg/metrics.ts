@@ -1,7 +1,7 @@
 // QAWF · 8 指标计算与主分析入口
 
-import { bandpassFFT, clamp, detrend, dominantFreq, fft, mean, median, nextPow2, resample, std, suppressArtifacts, zscore } from './dsp';
-import { chrom, fuse, normChannel, pca, posOverlapAdd } from './algorithms';
+import { clamp, detrend, dominantFreq, fft, mean, median, nextPow2, resample, std, suppressArtifacts, zscore } from './dsp';
+import { chrom, fuse, normChannel, posOverlapAdd, PULSE_BAND } from './algorithms';
 import { EMPTY_METRICS, type Metrics } from '../types';
 
 const FS = 30; // 重采样目标频率 Hz
@@ -10,10 +10,10 @@ const FS = 30; // 重采样目标频率 Hz
 export const CONFIG = {
   peak: { minDistRatio: 0.6, localWinSec: 2.5, threshK: 0.35 },
   ibi: { minMs: 300, maxMs: 1800, medianWin: 5, tol: 0.25, maxRejectRatio: 0.4 },
-  gate: { rmssdSec: 30, rmssdPairs: 15, siSec: 120, siBeats: 40, lfhfSec: 120, lfhfBeats: 40, fiSec: 60 },
-  hr: { mean: 70, sd: 12 },
-  // 以下 RMSSD / LF-HF 基线取自 rPPG 实测分布，不是 ECG 临床值。
-  // rPPG 的峰时序抖动会把 RMSSD 抬高 1.2–3.2 倍（随 SNR 变化）；若照搬 ECG 基线
+  gate: { rmssdSec: 30, rmssdPairs: 15, siSec: 60, siBeats: 20, lfhfSec: 60, lfhfBeats: 20, fiSec: 60 },
+  hr: { mean: 70, sd: 12, emaAlpha: 0.4, maxStep: 10 },
+  // 以下 RMSSD / LF-HF 基线取自 实测分布，不是 ECG 临床值。
+  // 峰时序抖动会把 RMSSD 抬高 1.2–3.2 倍（随 SNR 变化）；若照搬 ECG 基线
   // （ln40 ≈ 3.7），几乎所有测量都会被判成"HRV 极高"，把 FI/MWI 恒压在低端。
   // 合成信号实测：真值 RMSSD≈42ms 时读数落在 50（高 SNR）–135ms（典型 SNR），
   // 几何中心 ≈82ms → ln ≈ 4.4；sd 放宽到 0.65 以容纳 SNR 带来的额外散布。
@@ -22,6 +22,12 @@ export const CONFIG = {
   fi: { wHr: 0.5, wRmssd: 0.7, gain: 0.9 },
   mwi: { wLfhf: 0.6, wRmssd: 0.5, gain: 0.9 },
 };
+
+/**
+ * 跨帧心率跟踪状态。Worker 每会话单实例；duration 回退或过小视为新会话并复位。
+ * 旧版每次调用都独立估计心率（无插值、无记忆），是 1.5s 刷新下指数频繁跳动的直接原因。
+ */
+const hrState: { value: number | null; duration: number } = { value: null, duration: 0 };
 
 /** 抛物线插值求亚样本峰位：30Hz 下单样本量化即 33ms，直接取整会污染 RMSSD */
 function refinePeak(sig: Float64Array, i: number): number {
@@ -127,7 +133,7 @@ export function toIbiSeries(peaks: number[], fs: number): IbiSeries {
 /**
  * RMSSD 时域 HRV：只求"原序列中相邻"的两拍差，避免剔除位置产生假差异。
  *
- * 注意：rPPG 的峰时序抖动会系统性抬高 RMSSD（30fps 采样下约 +19%，15fps 下可达 3 倍）。
+ * 注意：相机采样的峰时序抖动会系统性抬高 RMSSD（30fps 采样下约 +19%，15fps 下可达 3 倍）。
  * 抖动在相邻拍间是相关的（带通平滑了波形），不满足白噪假设，故无法用
  * RMSSD² − 2σ² 之类的公式反解。降低抖动只能靠提高采样率，见 useMeasurement 的
  * FRAME_SEND_INTERVAL_MS。此处返回的是实测值，偏高，趋势可用、绝对值勿作临床解读。
@@ -275,39 +281,57 @@ export function analyze(
   const Gd = detrend(G, win);
   const Bd = detrend(B, win);
 
-  // 4. 归一化 → 三算法 → 相位对齐融合
+  // 4. 双算法脉搏提取（带通已含于算法内）：POS 主 + CHROM 备，按谱纯度²加权融合。
+  //    POS 是光照变化下最强经典基线（Wang et al. 2017 TBME）；权重²让干净信号主导，
+  //    替代旧版等权三路（含 PCA）融合——PCA 主成分常跟踪运动/光照而非脉搏，稀释信噪比。
+  const { low, high, trans } = PULSE_BAND;
   const rn = normChannel(R);
   const gn = normChannel(G);
   const bn = normChannel(B);
-  const sChrom = chrom(rn, gn, bn, FS);
   const sPos = posOverlapAdd(rn, gn, bn, FS);
-  const sPca = pca(rn, gn, bn, FS);
-  let pulse = fuse([sChrom, sPos, sPca]);
+  const sChrom = chrom(rn, gn, bn, FS);
+  const purPos = dominantFreq(sPos, FS, low, high).purity;
+  const purChrom = dominantFreq(sChrom, FS, low, high).purity;
+  const pulse = fuse([sPos, sChrom], [purPos * purPos, purChrom * purChrom]);
 
-  // 5. Wiener 降噪带通
-  pulse = bandpassFFT(pulse, FS, 0.7, 4, true);
+  // 5. 心率跟踪：新会话复位；峰检测先验用上一帧跟踪值（比当帧瞬时主频更稳）
+  if (duration < hrState.duration || duration < 6) hrState.value = null;
+  hrState.duration = duration;
+  const hrDom = dominantFreq(pulse, FS, low, high);
+  let hrNew: number | null = hrDom.freq > 0 ? hrDom.freq * 60 : null;
+  const peaks = findPeaks(pulse, FS, hrState.value ?? hrNew ?? 0);
+  out.beats = peaks.length;
+  const ibi = toIbiSeries(peaks, FS);
 
-  // 6. 心率 + 信赖度
-  const hrDom = dominantFreq(pulse, FS, 0.7, 4);
-  if (hrDom.freq > 0) out.hr = hrDom.freq * 60;
+  // 6. FFT 主频（已抛物线插值）与 IBI 中位数互校验，再跨帧 EMA + 步长钳制
+  if (ibi.vals.length >= 5) {
+    const hrIbi = 60000 / median(ibi.vals);
+    if (hrNew == null) hrNew = hrIbi;
+    else if (Math.abs(hrIbi - hrNew) <= 8) hrNew = (hrNew + hrIbi) / 2; // 一致：取均值提高精度
+    else if (hrState.value != null && Math.abs(hrIbi - hrState.value) < Math.abs(hrNew - hrState.value)) {
+      hrNew = hrIbi; // 主频跳到谐波/干扰频：取更贴近跟踪值的一路
+    }
+  }
+  if (hrNew != null) {
+    if (hrState.value == null) hrState.value = hrNew;
+    else {
+      const c = clamp(hrNew, hrState.value - CONFIG.hr.maxStep, hrState.value + CONFIG.hr.maxStep);
+      hrState.value = (1 - CONFIG.hr.emaAlpha) * hrState.value + CONFIG.hr.emaAlpha * c;
+    }
+    out.hr = hrState.value;
+  }
   const motionPenalty = clamp(1 - motion, 0.3, 1);
   const artifactPenalty = clamp(1 - clipped * 2, 0.3, 1);
   out.confidence = clamp(hrDom.purity * 140 * motionPenalty * artifactPenalty, 0, 99);
-
-  // 7. 峰值 → IBI 序列（用 HR 主频作先验，排除二次波误检）
-  const peaks = findPeaks(pulse, FS, out.hr ?? 0);
-  out.beats = peaks.length;
-  const ibi = toIbiSeries(peaks, FS);
-  // 剔除比例过高说明 IBI 不可信，HRV 系列一律不出数（显示 -- 而非误导性数值）
   const ibiUsable = ibi.rejectRatio <= CONFIG.ibi.maxRejectRatio;
 
   if (ibiUsable && duration >= CONFIG.gate.rmssdSec) out.rmssd = rmssd(ibi);
 
-  // 8. 呼吸（绿通道去趋势信号 0.1–0.5Hz 主频）
+  // 7. 呼吸（绿通道去趋势信号 0.1–0.5Hz 主频）
   const rrDom = dominantFreq(Gd, FS, 0.1, 0.5);
   if (rrDom.freq > 0) out.rr = rrDom.freq * 60;
 
-  // 9. SpO2（实验性：红/蓝 AC-DC 比值比）
+  // 8. SpO2（实验性：红/蓝 AC-DC 比值比）
   const acR = std(Rd);
   const dcR = mean(R) || 1;
   const acB = std(Bd);
@@ -315,7 +339,7 @@ export function analyze(
   const ratio = acR / dcR / (acB / dcB || 1e-6);
   if (isFinite(ratio) && ratio > 0) out.spo2 = clamp(104 - 5 * ratio, 90, 100);
 
-  // 10. 长时长门控的频域/复合指标
+  // 9. 长时长门控的频域/复合指标
   if (ibiUsable && duration >= CONFIG.gate.siSec) out.si = stressIndex(ibi);
   if (ibiUsable && duration >= CONFIG.gate.lfhfSec) out.lfhf = lfhf(ibi);
   // FI 只依赖 HR + RMSSD，60s 即可出数；MWI 依赖 LF/HF，随其门控
@@ -326,7 +350,7 @@ export function analyze(
     out.mwi = workloadIndex(out.lfhf, out.rmssd);
   }
 
-  // 11. 波形（最近 ~5s 归一化脉搏）
+  // 10. 波形（最近 ~5s 归一化脉搏）
   const tail = pulse.subarray(Math.max(0, pulse.length - FS * 5));
   out.waveform = Array.from(zscore(tail));
 

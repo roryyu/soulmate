@@ -1,4 +1,4 @@
-// QAWF · rPPG Web Worker（由 Next.js/webpack 本地打包，无远程脚本）
+// QAWF · Web Worker（由 Next.js/webpack 本地打包，无远程脚本）
 // 接收 AnalyzeRequest，返回 MetricsResponse。
 
 import { analyze } from './metrics';

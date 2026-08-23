@@ -19,9 +19,9 @@ import { LOCAL_DETECTOR_MODEL_URL, LOCAL_LANDMARK_MODEL_URL } from '@/lib/face/m
 
 const MAX_SECONDS = 180;
 const DETECT_INTERVAL_MS = 100; // 主线程回退：人脸检测节流 ~10Hz
-const FRAME_SEND_INTERVAL_MS = 66; // Worker 路径：帧发送节流 ~15Hz
-const ANALYZE_INTERVAL_MS = 2000; // 指标刷新间隔
-const MOTION_GATE = 0.08; // 运动门控阈值：超过则暂停采样入库
+const FRAME_SEND_INTERVAL_MS = 50; // Worker 路径：帧发送节流 ~20Hz
+const ANALYZE_INTERVAL_MS = 1500; // 指标刷新间隔
+const MOTION_GATE = 0.12; // 运动门控阈值：超过则暂停采样入库
 const FACE_WORKER_TIMEOUT_MS = 30000; // 人脸 Worker 初始化超时
 const DEBUG = false; // 调试开关：打印人脸检测诊断日志
 
@@ -41,6 +41,8 @@ export interface UseMeasurement {
   start: () => void;
   /** 补发一次收尾分析并等待结果；Worker 无响应时 4s 后退回最近一次结果 */
   stop: () => Promise<Metrics>;
+  /** 关闭摄像头并停止采集循环（保留指标数据，供结果页展示） */
+  closeCamera: () => void;
   reset: () => void;
 }
 
@@ -93,10 +95,21 @@ export function useMeasurement(): UseMeasurement {
       if (e.data.type === 'metrics') {
         const m = e.data.metrics;
         if (m.waveform && m.waveform.length) waveformRef.current = m.waveform;
-        metricsRef.current = m;
-        setMetrics(m);
+        // 保留上一次有效值：RMSSD / LF/HF / SI / FI / MWI 一旦有数就不再回退到 null
+        setMetrics((prev) => {
+          const merged: Metrics = {
+            ...m,
+            rmssd: m.rmssd ?? prev.rmssd,
+            lfhf: m.lfhf ?? prev.lfhf,
+            si: m.si ?? prev.si,
+            fi: m.fi ?? prev.fi,
+            mwi: m.mwi ?? prev.mwi,
+          };
+          metricsRef.current = merged;
+          return merged;
+        });
         if (e.data.final && finalResolveRef.current) {
-          finalResolveRef.current(m);
+          finalResolveRef.current(metricsRef.current);
           finalResolveRef.current = null;
         }
       }
@@ -501,13 +514,22 @@ export function useMeasurement(): UseMeasurement {
     });
   }, []);
 
-  const reset = useCallback(() => {
+  /**
+   * 关闭摄像头并停止采集循环（在 stop 拿到最终指标后调用）。
+   * 保留 metrics/timer 等状态供结果页展示；硬件资源全部释放。
+   */
+  const closeCamera = useCallback(() => {
     runningRef.current = false;
     loopRunningRef.current = false;
     cancelAnimationFrame(rafRef.current);
     if (analyzeTimerRef.current) clearInterval(analyzeTimerRef.current);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
     if (faceWorkerRef.current) {
       const msg: FaceRequest = { type: 'dispose' };
       faceWorkerRef.current.postMessage(msg);
@@ -516,8 +538,13 @@ export function useMeasurement(): UseMeasurement {
     }
     faceWorkerReadyRef.current = false;
     useWorkerRef.current = false;
-    detectorRef.current = null;
     grabRef.current = null;
+    setFps(0);
+  }, []);
+
+  const reset = useCallback(() => {
+    closeCamera();
+    detectorRef.current = null;
     lastCenterRef.current = null;
     motionRef.current = 0;
     openingRef.current = false;
@@ -525,7 +552,7 @@ export function useMeasurement(): UseMeasurement {
     setTimer(0);
     setMetrics({ ...EMPTY_METRICS });
     setFaceHint('正在加载模型…');
-  }, []);
+  }, [closeCamera]);
 
   // 卸载清理
   useEffect(() => () => {
@@ -540,6 +567,6 @@ export function useMeasurement(): UseMeasurement {
   return {
     status, timer, fps, metrics, faceHint, error,
     videoRef, overlayRef, waveRef,
-    openCamera, start, stop, reset,
+    openCamera, start, stop, closeCamera, reset,
   };
 }
