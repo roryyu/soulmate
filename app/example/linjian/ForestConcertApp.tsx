@@ -751,19 +751,34 @@ function PlayerScreen({
   }
 
   const volumes = [packet.vol1, packet.vol2, packet.vol3, packet.vol4, packet.vol5]
+  
+  
+  
   // 使用 useMemo 避免每次渲染重复计算
   const maxTrack = useMemo(
     () => volumes.indexOf(Math.max(...volumes)),
     [volumes]
   )
-  const ossUri = MUSICS[String(maxTrack + 1) as keyof typeof MUSICS]
-
+  const trackIndex=maxTrack+1;
+  
+  const mid = MUSICS[String(trackIndex) as keyof typeof MUSICS]
+  
   // oss:// 地址需转换为可访问的预签名 URL
   const [musicurl, setMusicurl] = useState('')
   useEffect(() => {
     let cancelled = false
     setMusicurl('')
-    fetch(`/api/toc-data/oss-url?uri=${encodeURIComponent(ossUri)}`)
+        /*fetch(`/api/toc-data/oss-url?uri=${encodeURIComponent(ossUri)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data?.url) setMusicurl(data.url)
+      })
+      .catch(() => {})*/
+    fetch('/api/music-create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mid }),
+      })
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data?.url) setMusicurl(data.url)
@@ -772,7 +787,7 @@ function PlayerScreen({
     return () => {
       cancelled = true
     }
-  }, [ossUri])
+  }, [mid])
   return (
     <main className="player-screen" ref={screenRef}>
       <audio

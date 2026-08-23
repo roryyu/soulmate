@@ -279,7 +279,7 @@ export const ANIMALS: Record<AnimalKey, Animal> = {
 /** 主线 12 题 */
 export const MAIN_QUESTIONS: Question[] = [
   { id: 'Q1', animal: 'deer', track: 1, text: '我常常思绪纷乱、心里压抑，肩颈容易紧绷，很难静下心' },
-  { id: 'Q2', animal: 'fish', track: 1, text: '我偶尔会提不起劲儿，浑身慵懒乏力，做什么都淡淡的没兴趣' },
+  { id: 'Q2', animal: 'fish', track: 5, text: '我偶尔会提不起劲儿，浑身慵懒乏力，做什么都淡淡的没兴趣' },
   { id: 'Q3', animal: 'deer', track: 1, text: '我遇上烦心事总习惯憋在心里，胸口闷闷的，不愿意和别人多说' },
   { id: 'Q4', animal: 'deer', track: 1, text: '心里委屈时会独自压抑，胸口发堵，不好意思主动表达感受' },
   { id: 'Q5', animal: 'bird', track: 2, text: '碰到重要事情容易反复思虑，胸口发闷、心跳变快，心神安定不下来' },
@@ -296,7 +296,7 @@ export const MAIN_QUESTIONS: Question[] = [
 export const BRANCH_QUESTIONS: Question[] = [
   { id: 'T1', animal: 'fish', track: 5, text: '我平时晚上睡觉总能睡得踏实安稳，你呢？' },
   { id: 'T2', animal: 'bear', track: 3, text: '我做事很容易集中精神，你是不是也一样？' },
-  { id: 'T3', animal: 'deer', track: '1 · 4', text: '我和家人、小伙伴相处都很轻松开心，你呢？' },
+  { id: 'T3', animal: 'deer', track: 1, text: '我和家人、小伙伴相处都很轻松开心，你呢？' },
   { id: 'T4', animal: 'bird', track: 2, text: '我日常很容易心神慌乱、思虑过多吗？' },
 ]
 
@@ -314,13 +314,58 @@ export const VIDEOS = {
   transition: `${ASSET_BASE}/切换动画.mp4`,
   player: `${ASSET_BASE}/治愈森林音乐会视频生成.mp4`,
 } as const
-export const MUSICS={
+
+
+const musicMap:Record<string,string[]>={
+  '1':['0018','0019'],//deer
+  '2':['0016','0017'],//bird
+  '3':['0020','0021'],//bear
+  '4':['0024','0025'],//dove
+  '5':['0022','0023'],//fish
+}
+
+//0和1的随机数
+const randomIndex = () => Math.floor(Math.random() * 2)
+const times=[
+  {id:'t1',info:'8:00-12:00'},
+  {id:'t2',info:'12:00-16:00'},
+  {id:'t3',info:'16:00-20:00'},
+  {id:'t4',info:'20:00-8:00'},
+]
+//获取当前时分，根据times的info，返回id
+const now = new Date()
+const currentMinutes = now.getHours() * 60 + now.getMinutes()
+let tid=times[0].id
+
+for (const t of times) {
+  const [start, end] = t.info.split('-')
+  const [sh, sm] = start.split(':').map(Number)
+  const [eh, em] = end.split(':').map(Number)
+  const startMin = sh * 60 + sm
+  const endMin = eh * 60 + em
+
+  if (startMin <= endMin) {
+    // 不跨午夜，如 8:00-12:00
+    if (currentMinutes >= startMin && currentMinutes < endMin) tid=t.id
+  } else {
+    // 跨午夜，如 20:00-8:00
+    if (currentMinutes >= startMin || currentMinutes < endMin) tid=t.id
+  }
+}
+const finalMusic:Record<string,string>={}
+for(let mkey in musicMap){
+  finalMusic[mkey]=`0000-0000-${musicMap[mkey][randomIndex()]}-0000-${tid}`
+}
+
+
+/*export const MUSICS={
   '1': `oss://soulmate-music/toc-data/1.wav`,
   '2': `oss://soulmate-music/toc-data/2.wav`,
   '3': `oss://soulmate-music/toc-data/3.wav`,
   '4': `oss://soulmate-music/toc-data/4.wav`,
   '5': `oss://soulmate-music/toc-data/5.wav`,
-}
+}*/
+export const MUSICS=finalMusic
 // ========== 本地进度存储 ==========
 
 /** localStorage 存档键 */

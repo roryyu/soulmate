@@ -803,14 +803,18 @@ function PlayerScreen({
     () => volumes.indexOf(Math.max(...volumes)),
     [volumes]
   )
-  const ossUri = MUSICS[String(maxTrack + 1) as keyof typeof MUSICS]
+  const mid = MUSICS[String(maxTrack + 1) as keyof typeof MUSICS]
 
   // oss:// 地址需转换为可访问的预签名 URL
   const [musicurl, setMusicurl] = useState('')
   useEffect(() => {
     let cancelled = false
     setMusicurl('')
-    fetch(`/api/toc-data/oss-url?uri=${encodeURIComponent(ossUri)}`)
+    fetch('/api/music-create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mid }),
+      })
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data?.url) setMusicurl(data.url)
@@ -819,7 +823,7 @@ function PlayerScreen({
     return () => {
       cancelled = true
     }
-  }, [ossUri])
+  }, [mid])
   return (
     <main className="player-screen" ref={screenRef}>
       <audio
