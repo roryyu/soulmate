@@ -5,7 +5,7 @@ import { musicDurations,MUSICS,MusicItem,getTimeTag,randomIndex } from '@/lib/mu
 import { v4 as uuidv4 } from 'uuid'
 import { uploadFile, getPresignedUrl } from '@/lib/oss'
 import { join } from 'path'
-import { readFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs'
 export const dynamic = 'force-dynamic';
 
 
@@ -59,11 +59,11 @@ export async function POST(request: NextRequest) {
 let timeTag=getTimeTag()
 let mid=`0000-0000-0000-0030-${timeTag}`
 const tagMap={
-  'Anger':['0026'],
-  'Sadness':['0027','0028'],
-  'Anxiety':['0029'],
-  'Joy':['0030'],
-  'Numbness':['0031','0032'],
+  'anger':['0026'],
+  'sadness':['0027','0028'],
+  'anxiety':['0029'],
+  'joy':['0030'],
+  'numbness':['0031','0032'],
 }
 
 if(data && data.tags){
@@ -204,8 +204,43 @@ console.log(`📌 mid=${mid}`)
       key: ossKey,
     });
 
-    // 将Buffer转换为Uint8Array
-    const contentArray = new Uint8Array(result.content);
+    // 将 OSS 中的 MP3 实时解码为 PCM 流
+    // 默认返回 WAV（PCM s16le，44100Hz 双声道）；body 传 `format: "pcm"` 返回原始 PCM
+    const format = typeof body.format === 'string' ? body.format.toLowerCase() : undefined;
+    const rawPcm = format === 'pcm' || format === 'raw';
+
+    if (!ffmpeg) {
+      throw new Error('fluent-ffmpeg 未安装，无法进行 PCM 转换');
+    }
+
+    const tempDecodeDir = join(process.cwd(), 'temp', 'music-decode');
+    if (!existsSync(tempDecodeDir)) mkdirSync(tempDecodeDir, { recursive: true });
+
+    const inputFile = join(tempDecodeDir, `${uuidv4()}.mp3`);
+    const outputFile = join(tempDecodeDir, `${uuidv4()}.${rawPcm ? 'pcm' : 'wav'}`);
+    writeFileSync(inputFile, result.content);
+
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(inputFile)
+        .outputOptions([
+          ...(rawPcm ? ['-f', 's16le'] : ['-f', 'wav']),
+          '-acodec', 'pcm_s16le',
+          '-ar', '44100',
+          '-ac', '2',
+        ])
+        .output(outputFile)
+        .on('end', () => resolve())
+        .on('error', (err: any) => reject(err))
+        .run();
+    });
+
+    const pcmBuffer = readFileSync(outputFile);
+    const pcmArray = new Uint8Array(pcmBuffer);
+    const contentType = rawPcm ? 'audio/L16;rate=44100;channels=2' : 'audio/wav';
+
+    // 清理临时文件
+    try { unlinkSync(inputFile); } catch {}
+    try { unlinkSync(outputFile); } catch {}
 
     // 处理Range请求（支持音频拖拽）
     const range = request.headers.get('range');
@@ -213,26 +248,26 @@ console.log(`📌 mid=${mid}`)
     if (range) {
       const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : result.content.length - 1;
+      const end = parts[1] ? parseInt(parts[1], 10) : pcmBuffer.length - 1;
       const chunksize = end - start + 1;
-      const chunk = contentArray.slice(start, end + 1);
+      const chunk = pcmArray.slice(start, end + 1);
 
       return new NextResponse(chunk, {
         status: 206,
         headers: {
-          'Content-Range': `bytes ${start}-${end}/${result.content.length}`,
+          'Content-Range': `bytes ${start}-${end}/${pcmBuffer.length}`,
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize.toString(),
-          'Content-Type': 'audio/mpeg',
+          'Content-Type': contentType,
         },
       });
     }
 
-    // 返回完整音频流
-    return new NextResponse(contentArray, {
+    // 返回完整 PCM 流
+    return new NextResponse(pcmArray, {
       headers: {
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': result.content.length.toString(),
+        'Content-Type': contentType,
+        'Content-Length': pcmBuffer.length.toString(),
         'Accept-Ranges': 'bytes',
       },
     });

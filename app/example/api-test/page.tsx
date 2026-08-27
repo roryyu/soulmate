@@ -6,9 +6,9 @@ export default function ApiTestPage() {
   const [url, setUrl] = useState('/api/open/music')
   const [params, setParams] = useState(`{
   "uid": "test-user-001",
+  "format": "pcm",
   "data": {
-    "mood": "relaxed",
-    "time": "evening"
+    "tags": ["anger"]
   }
 }`)
   const [loading, setLoading] = useState(false)
