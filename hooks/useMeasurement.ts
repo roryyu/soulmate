@@ -412,9 +412,17 @@ export function useMeasurement(): UseMeasurement {
       try {
         const track = stream.getVideoTracks()[0];
         const caps = track.getCapabilities ? track.getCapabilities() : {};
+        const settings = (track.getSettings ? track.getSettings() : {}) as any;
         const adv: MediaTrackConstraintSet[] = [];
-        if ((caps as any).exposureMode?.includes?.('manual')) adv.push({ exposureMode: 'manual' } as any);
-        if ((caps as any).whiteBalanceMode?.includes?.('manual')) adv.push({ whiteBalanceMode: 'manual' } as any);
+        // 只在能拿到当前曝光时长时才锁定曝光：部分手机只设 exposureMode:'manual'
+        // 却不给 exposureTime，会把画面锁在最暗曝光，导致“环境很亮但画面很暗”。
+        if ((caps as any).exposureMode?.includes?.('manual') && settings.exposureTime) {
+          adv.push({ exposureMode: 'manual', exposureTime: settings.exposureTime } as any);
+        }
+        // 白平衡同理：仅在有当前色温值时锁定，否则保持自动，避免色温/亮度异常。
+        if ((caps as any).whiteBalanceMode?.includes?.('manual') && settings.colorTemperature) {
+          adv.push({ whiteBalanceMode: 'manual', colorTemperature: settings.colorTemperature } as any);
+        }
         if (adv.length) await track.applyConstraints({ advanced: adv });
       } catch {
         /* 部分设备不支持锁定曝光 */
