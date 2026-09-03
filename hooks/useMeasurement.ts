@@ -34,6 +34,9 @@ export interface UseMeasurement {
   metrics: Metrics;
   faceHint: string;
   error: string;
+  /** 情绪签到：用户在摄像头界面选择的情绪（中文名），未选择为 null */
+  emotion: string | null;
+  setEmotion: (e: string | null) => void;
   videoRef: React.RefObject<HTMLVideoElement>;
   overlayRef: React.RefObject<HTMLCanvasElement>;
   waveRef: React.RefObject<HTMLCanvasElement>;
@@ -53,6 +56,7 @@ export function useMeasurement(): UseMeasurement {
   const [metrics, setMetrics] = useState<Metrics>({ ...EMPTY_METRICS });
   const [faceHint, setFaceHint] = useState('正在加载模型…');
   const [error, setError] = useState('');
+  const [emotion, setEmotion] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -560,6 +564,7 @@ export function useMeasurement(): UseMeasurement {
     setTimer(0);
     setMetrics({ ...EMPTY_METRICS });
     setFaceHint('正在加载模型…');
+    setEmotion(null);
   }, [closeCamera]);
 
   // 卸载清理
@@ -573,7 +578,7 @@ export function useMeasurement(): UseMeasurement {
   }, []);
 
   return {
-    status, timer, fps, metrics, faceHint, error,
+    status, timer, fps, metrics, faceHint, error, emotion, setEmotion,
     videoRef, overlayRef, waveRef,
     openCamera, start, stop, closeCamera, reset,
   };

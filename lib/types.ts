@@ -51,6 +51,23 @@ export const EMPTY_METRICS: Metrics = {
   confidence: null, motion: null, beats: 0, waveform: [],
 };
 
+/** 报告动态内容项 · 情绪能力 */
+export interface AbilityItem { label: string; value: number; hint: string; color: string }
+/** 报告动态内容项 · 问答 */
+export interface QaItem { q: string; a: string }
+/** 报告动态内容项 · 状态倾向条 */
+export interface MoodBarItem { label: string; value: number; color: string }
+/** 报告动态内容项 · 行动建议 */
+export interface BufferItem { icon: string; title: string; desc: string }
+
+/** 报告洞察：由 /api/report/insights 依据 form/packet/metrics 大模型生成 */
+export interface ReportInsights {
+  ability: AbilityItem[];
+  qa: QaItem[];
+  moodBars: MoodBarItem[];
+  buffers: BufferItem[];
+}
+
 // ————— ROI 几何（主线程与人脸 Worker 共享） —————
 
 /** 矩形 ROI */
