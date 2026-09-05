@@ -4,6 +4,12 @@ import { prisma } from '@/lib/prisma'
 import { aiMusicControl, MusicFileInfo } from '@/lib/ai-music-client'
 import { uploadFile, downloadFile } from '@/lib/oss'
 import { v4 as uuidv4 } from 'uuid'
+import { usesFfmpegSkill, synthesizeWithFfmpegSkill } from '@/lib/prescription-skill-synthesis'
+
+// ffmpeg-skill 合成要跑子进程与本地文件，必须 nodejs runtime；合成较慢，放宽超时
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 /**
  * 获取所有处方列表
@@ -80,6 +86,25 @@ export async function POST(request: NextRequest) {
     }
     console.log('\n========== 💊 创建并执行处方 ==========')
     console.log(`📌 处方名称: ${name}`)
+
+    // 分支：提示词包含「ffmpeg-skill」→ 用本地 FFmpeg 技能合成音频；否则走原 AI 音乐控制
+    if (usesFfmpegSkill(prompt)) {
+      console.log('📌 合成方式: ffmpeg-skill（本地 FFmpeg 技能）')
+      const synth = await synthesizeWithFfmpegSkill({ name, prompt, audioFiles, totalDuration })
+      const skillPrescription = await prisma.prescription.create({
+        data: {
+          name: name.trim(),
+          prompt: prompt?.trim() || null,
+          arguments: synth.argumentsStr,
+          etag: synth.etag,
+          key: synth.key,
+        },
+      })
+      console.log('✅ 处方创建成功（ffmpeg-skill 合成）')
+      console.log('=========================================\n')
+      return NextResponse.json(skillPrescription)
+    }
+    console.log('📌 合成方式: AI 音乐控制（原逻辑）')
 
     // 将音频文件信息编码到 arguments
     

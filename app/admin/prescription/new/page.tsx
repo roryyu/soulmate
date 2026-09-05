@@ -100,6 +100,9 @@ export default function NewPrescriptionPage() {
 
   const availableTocData = tocDataList.filter(t => !selectedAudioFiles.find(s => s.id === t.id))
 
+  // 提示词包含「ffmpeg-skill」→ 提交时走本地 FFmpeg 技能合成音频，否则走原 AI 音乐控制
+  const useFfmpegSkill = formData.prompt.toLowerCase().includes('ffmpeg-skill')
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -198,7 +201,20 @@ export default function NewPrescriptionPage() {
                   disabled={isSubmitting}
                   className="mt-1.5 border-[#dddddd] rounded-lg text-[14px] font-mono"
                 />
-                <p className="mt-1 text-[12px] text-[#929292]">提示词将用于 AI 音乐控制，描述您想要的音频编辑方式</p>
+                <div className="mt-2">
+                  {useFfmpegSkill ? (
+                    <span className="inline-flex items-center gap-1 text-[12px] text-[#0f7b3f] bg-[#eaf7ef] border border-[#bfe6cd] rounded-md px-2 py-1">
+                      <Check className="w-3.5 h-3.5" /> 将使用本地 ffmpeg-skill 合成音频
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[12px] text-[#6a6a6a] bg-[#f7f7f7] border border-[#dddddd] rounded-md px-2 py-1">
+                      <Music className="w-3.5 h-3.5" /> 将使用 AI 音乐控制合成
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-[12px] text-[#929292]">
+                  描述您想要的音频编辑方式。提示：在提示词中包含「使用 ffmpeg-skill」即可改用本地 FFmpeg 技能合成，否则走 AI 音乐控制。
+                </p>
               </div>
 
               {/* 音乐时长 */}
