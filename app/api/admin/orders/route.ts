@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
   const userId = searchParams.get('userId');       // 按用户过滤
   const keyword = searchParams.get('keyword');     // 按订单号/商品名搜索
 
-  const where: Prisma.OrderWhereInput = {};
+  const where: NonNullable<Parameters<typeof prisma.order.findMany>[0]>['where'] = {};
   if (status) where.status = status;
   if (userId) where.userId = userId;
   if (keyword) {
