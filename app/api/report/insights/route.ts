@@ -118,13 +118,13 @@ const SYSTEM_PROMPT = `你是有屿 SOULMATES 情绪健康报告的撰写助手�
 6. 语气温暖、第二人称、不评判；避免任何医疗诊断或用药建议；全部使用简体中文。`;
 
 export async function POST(req: Request) {
-  let body: { form?: PersonForm; packet?: ResultPacket | null; metrics?: Metrics } = {};
+  let body: { form?: PersonForm; packet?: ResultPacket | null; metrics?: Metrics; extra?: Record<string, unknown> } = {};
   try {
     body = await req.json();
   } catch {
     /* ignore */
   }
-  const { form, packet, metrics } = body;
+  const { form, packet, metrics, extra } = body;
 
   if (!metrics || typeof metrics !== 'object') {
     return NextResponse.json({ ok: false, error: '缺少 metrics 数据' }, { status: 400 });
@@ -167,6 +167,8 @@ export async function POST(req: Request) {
           是否冲突: packet.has_conflict,
         }
       : '无量表数据',
+    // 有屿等无表单/无量表流程的附加上下文（自选精灵 / 五行能量 / 声纹文本等）
+    附加上下文: extra && typeof extra === 'object' ? extra : '无',
   };
 
   try {
