@@ -4,7 +4,7 @@
  * 有屿 SOULMATES · 数字疗愈体验版 —— 主应用（流程编排）
  * 由原单页 HTML（有屿数字疗愈体验版.html）迁移、按场景拆分为多个 React 组件。
  *
- * 流程：宇宙开机(脑电采集) → 情绪精灵 → 魔镜秘境 → 有屿世界 → 公园/博物馆(收集 12 枚音符)
+ * 流程：宇宙开机(脑电采集) → 情绪精灵 → 魔镜秘境 → 声纹情绪 → 有屿世界 → 公园/博物馆(收集 12 枚音符)
  *      → 专属疗愈音乐 → 身心觉察报告
  *
  * 所有场景常驻挂载，通过 .active 类做淡入淡出切换（与原实现一致，保留过场动画）。
@@ -18,6 +18,7 @@ import QuizModal from './components/QuizModal'
 import ReportScene from './components/ReportScene'
 import SplashScene from './components/SplashScene'
 import SpriteScene from './components/SpriteScene'
+import VoiceScene from './components/VoiceScene'
 import Vortex from './components/Vortex'
 import WorldScene from './components/WorldScene'
 import { AudioEngine } from './lib/audio'
@@ -41,7 +42,7 @@ export default function YouyuApp() {
 
   /**
    * 当前场景 id —— 全部场景常驻挂载，由它驱动 active 类做淡入淡出切换。
-   * 例：'scene-splash' → 'scene-sprite' → 'scene-mirror' → 'scene-world'
+   * 例：'scene-splash' → 'scene-sprite' → 'scene-mirror' → 'scene-voice' → 'scene-world'
    *     → 'scene-park' / 'scene-museum' → 'scene-music' → 'scene-report'
    */
   const [scene, setScene] = useState<SceneId>('scene-splash')
@@ -133,7 +134,8 @@ export default function YouyuApp() {
   /* ---------- 各场景「自然完成」回调 ---------- */
   const onEegComplete = useCallback(() => vortexTo(() => { setSplashIdle(false); setScene('scene-sprite') }), [vortexTo])
   const onSpriteDone = useCallback(() => vortexTo(() => setScene('scene-mirror')), [vortexTo])
-  const onMirrorDone = useCallback(() => vortexTo(() => setScene('scene-world')), [vortexTo])
+  const onMirrorDone = useCallback(() => vortexTo(() => setScene('scene-voice')), [vortexTo])
+  const onVoiceDone = useCallback(() => vortexTo(() => setScene('scene-world')), [vortexTo])
   const onEnterPlace = useCallback((place: 'park' | 'museum') => setScene(('scene-' + place) as SceneId), [])
   const onMusicDone = useCallback(() => setScene('scene-report'), [])
 
@@ -141,8 +143,9 @@ export default function YouyuApp() {
   const nav: Record<SceneId, { back: (() => void) | null; skip: (() => void) | null }> = {
     'scene-splash': { back: null, skip: () => setScene('scene-sprite') },
     'scene-sprite': { back: gotoSplashIdle, skip: () => { setEmo((e) => e ?? 'happy'); setScene('scene-mirror') } },
-    'scene-mirror': { back: () => setScene('scene-sprite'), skip: () => vortexTo(() => setScene('scene-world')) },
-    'scene-world': { back: () => setScene('scene-mirror'), skip: () => setScene('scene-music') },
+    'scene-mirror': { back: () => setScene('scene-sprite'), skip: () => vortexTo(() => setScene('scene-voice')) },
+    'scene-voice': { back: () => setScene('scene-mirror'), skip: () => vortexTo(() => setScene('scene-world')) },
+    'scene-world': { back: () => setScene('scene-voice'), skip: () => setScene('scene-music') },
     'scene-park': { back: () => setScene('scene-world'), skip: () => setScene('scene-music') },
     'scene-museum': { back: () => setScene('scene-world'), skip: () => setScene('scene-music') },
     'scene-music': { back: () => setScene('scene-world'), skip: () => setScene('scene-report') },
@@ -356,10 +359,11 @@ export default function YouyuApp() {
         <SplashScene active={scene === 'scene-splash'} idle={splashIdle} onEegComplete={onEegComplete} />
         <SpriteScene active={scene === 'scene-sprite'} onPick={setEmo} onDone={onSpriteDone} />
         <MirrorScene active={scene === 'scene-mirror'} emo={emo} onDone={onMirrorDone} onMetrics={setMirrorMetrics} />
+        <VoiceScene active={scene === 'scene-voice'} onDone={onVoiceDone} onVoiceResult={setVoiceResult} />
         <WorldScene active={scene === 'scene-world'} emo={emo} onEnter={onEnterPlace} />
         <PlaceScene active={scene === 'scene-park'} place="park" collected={notes} onNoteClick={openQuiz} />
         <PlaceScene active={scene === 'scene-museum'} place="museum" collected={notes} onNoteClick={openQuiz} />
-        <MusicScene active={scene === 'scene-music'} emo={emo} elemKey={dominantElem} onDone={onMusicDone} onVoiceResult={setVoiceResult} onRequestMusic={handleResultDone} musicUrl={musicUrl} />
+        <MusicScene active={scene === 'scene-music'} emo={emo} elemKey={dominantElem} onDone={onMusicDone} onRequestMusic={handleResultDone} musicUrl={musicUrl} />
         <ReportScene
           active={scene === 'scene-report'}
           metrics={mirrorMetrics}

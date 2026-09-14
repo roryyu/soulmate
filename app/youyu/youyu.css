@@ -369,6 +369,7 @@
   content:"♪"; position:absolute; inset:0; display:grid; place-items:center;
   font-size:40px; color:#fff; text-shadow:0 0 30px #8fb0ff; animation:yy-pulse 1s infinite;
 }
+.youyu-app #scene-voice,
 .youyu-app #scene-music {align-items:center; justify-content:center; text-align:center; display:flex; flex-direction:column;}
 .youyu-app .music-gen p {margin-top:26px; font-size:14px; line-height:2; color:#cdd6ff;}
 .youyu-app .gen-orb {

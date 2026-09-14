@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * 场景 7：有屿身心觉察报告（长页，可上下滑动）
+ * 场景 8：有屿身心觉察报告（长页，可上下滑动）
  * 视觉还原 public/youyu/report.jpg 长图（深空底 + 卡片 + 青色章节条），
  * 内容结构参考 components/metrics/ResultScreen.tsx：
  * 封面 → 摘要 → 重点提示 → 情绪流动(雷达) → 身心详解 → 五行运行模式 →
@@ -518,13 +518,6 @@ export default function ReportScene({
               </div>
             </div>
             <div className="yyr-progress"><div style={{ width: `${Math.min(96, Math.max(8, curePct))}%` }} /></div>
-            {voiceResult && (
-              <div className="yyr-card yyr-voice">
-                <b>你的声音，被听见了</b>
-                <p>「{voiceResult}」</p>
-                <small>声纹情绪判断 · 音乐场景录制</small>
-              </div>
-            )}
           </Sec>
 
           {/* ── 干预后的自我觉察 ── */}

@@ -239,6 +239,15 @@ export default function MirrorScene({ active, emo, onDone, onMetrics }: Props) {
 
   const sp = SPRITES[emo ?? 'happy']
 
+  // 引导文案随倒计时切换：0-20s 深呼吸 / 20-40s 放松面部 / 40s 后默念肯定语
+  const elapsed = MIRROR_SECONDS - sec
+  const guideText =
+    elapsed < 20
+      ? '请你深深地注视自己的双眼，做3个深呼吸'
+      : elapsed < 40
+        ? '放松面部肌肉，松开牙关，舒展眉心'
+        : '在心里默念3遍：我看见真实的自己，我值得美好'
+
   const pickChip = () => {
     setChipsSent(true)
     answerRef.current?.()
@@ -261,7 +270,7 @@ export default function MirrorScene({ active, emo, onDone, onMetrics }: Props) {
       <div className="mirror-dialogue">
         <div className="md-sprite" id="md-sprite" style={{ backgroundImage: `url(${sp.img})` }} />
         <div className="md-right">
-          <div className="bubble">很好，继续看着镜子里的自己～</div>
+          <div className="bubble">{guideText}</div>
         </div>
       </div>
       <div className="pulse-line"><canvas id="ppg-wave" ref={m.waveRef} /></div>

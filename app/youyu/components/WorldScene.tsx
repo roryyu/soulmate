@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * 场景 4：有屿·世界地图
+ * 场景 5：有屿·世界地图
  * 两张门（公园 / 博物馆）+ 指针视差；精灵头像取自当前情绪。
  */
 import { useEffect, useRef } from 'react'

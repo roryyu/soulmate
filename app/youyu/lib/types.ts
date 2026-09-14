@@ -14,6 +14,7 @@ export type SceneId =
   | 'scene-splash'
   | 'scene-sprite'
   | 'scene-mirror'
+  | 'scene-voice'
   | 'scene-world'
   | 'scene-park'
   | 'scene-museum'
