@@ -123,7 +123,11 @@ export default function YouyuApp() {
   }, [voiceResult])
 
   /* ---------- 场景切换 / 穿越动效 ---------- */
+  // 语音/引导音统一走 AudioEngine.playVoice 单实例通道，同一时间只会响一条。
+  // 这里在跨场景的关键节点（vortex 起、导航 back/skip）额外 stopVoice 一下，
+  // 避免上一场的引导音拖到漩涡动画里或下一页去。
   const vortexTo = useCallback((next: () => void) => {
+    AudioEngine.stopVoice()
     setVortexOn(true)
     AudioEngine.chime(520)
     bagRef.current.later(() => { setVortexOn(false); next() }, 1300)
@@ -151,8 +155,8 @@ export default function YouyuApp() {
     'scene-music': { back: () => setScene('scene-world'), skip: () => setScene('scene-report') },
     'scene-report': { back: null, skip: null },
   }
-  const handleBack = () => { setQuizOpen(false); nav[scene].back?.() }
-  const handleSkip = () => { setQuizOpen(false); nav[scene].skip?.() }
+  const handleBack = () => { setQuizOpen(false); AudioEngine.stopVoice(); nav[scene].back?.() }
+  const handleSkip = () => { setQuizOpen(false); AudioEngine.stopVoice(); nav[scene].skip?.() }
 
   /* ---------- 音符飞行动效（命令式，附着到 #phone 内以命中作用域样式） ---------- */
   const flyNote = (fromEl: HTMLElement) => {

@@ -46,7 +46,6 @@ export default function MirrorScene({ active, emo, onDone, onMetrics }: Props) {
   // rPPG 采集：复用 metrics 的 useMeasurement（摄像头 / FaceMesh 扫脸 / 指标计算），本场景不展示指标
   const m = useMeasurement()
   const recRef = useRef<SpeechRecognitionLike | null>(null)
-  const mirrorAudioRef = useRef<HTMLAudioElement | null>(null)
   const answerRef = useRef<(() => void) | null>(null)
   const doneRef = useRef(onDone)
   const onMetricsRef = useRef(onMetrics)
@@ -108,15 +107,16 @@ export default function MirrorScene({ active, emo, onDone, onMetrics }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, m.status])
 
-  // 离开场景：停采样、关摄像头、停引导音频（stop 有 4s Worker 兜底，不阻塞切场景）；
+  // 离开场景：停采样、关摄像头、停引导音（stop 有 4s Worker 兜底，不阻塞切场景）；
   // 兜底上报最后快照（跳过/返回时 finishMirror 不会执行，父组件仍能拿到已采数据）
   useEffect(() => {
     if (!active) return
     return () => {
       void m.stop().then(reportMetrics)
       m.closeCamera()
-      mirrorAudioRef.current?.pause()
-      mirrorAudioRef.current = null
+      // 引导音已收收到 AudioEngine voice 单实例通道，离场时直接 stopVoice，
+      // 保证不会拖到下一页与新场景的语音叠加。
+      AudioEngine.stopVoice()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
@@ -127,7 +127,7 @@ export default function MirrorScene({ active, emo, onDone, onMetrics }: Props) {
     if (active && m.status === 'ready') {
       console.log('m.start()')
       m.start()
-      void new Audio('/youyu/mirror.mp3').play().catch(() => {})
+      AudioEngine.playVoice('/youyu/mirror.mp3')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, m.status])

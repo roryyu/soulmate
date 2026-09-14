@@ -281,6 +281,60 @@ function ambient(type: 'park' | 'museum') {
   }
 }
 
+/* —— 语音/引导音素材：单实例 HTMLAudioElement，保证同一时间只播放一条 —— */
+// 场景里的 TTS / 引导音（nao1/nao2/sao1/mirror/精灵回应等）都走这里，
+// 每次 playVoice 会先 stopVoice 顶掉上一条，避免多条 audio 元素同时响叠音。
+let voiceEl: HTMLAudioElement | null = null
+let voiceToken = 0
+
+interface PlayVoiceOptions {
+  /** 自然播放结束（ended）时触发；被 stopVoice / 新一次 playVoice 打断时不触发 */
+  onEnded?: () => void
+  /** 播放启动失败（自动播放被拒、素材加载失败等）时触发；用于回退到定时兜底 */
+  onError?: () => void
+  /** 是否循环播放（默认 false） */
+  loop?: boolean
+}
+
+/**
+ * 播放一段音频素材：先停掉上一条正在播放的 voice，再启动新的，保证单实例。
+ * 返回创建的 HTMLAudioElement 供调用方按需持有；不需要引用时可忽略返回值。
+ */
+function playVoice(url: string, opts: PlayVoiceOptions = {}): HTMLAudioElement {
+  stopVoice()
+  const el = new Audio(url)
+  if (opts.loop) el.loop = true
+  voiceEl = el
+  const token = ++voiceToken
+  let fired = false
+  const finish = (kind: 'ended' | 'error') => {
+    if (fired) return
+    fired = true
+    // 已被后续 playVoice / stopVoice 打断 → 视为过期回调，不再触发上层钩子
+    if (token !== voiceToken) return
+    voiceEl = null
+    if (kind === 'ended') opts.onEnded?.()
+    else opts.onError?.()
+  }
+  el.addEventListener('ended', () => finish('ended'), { once: true })
+  el.addEventListener('error', () => finish('error'), { once: true })
+  el.play().catch(() => finish('error'))
+  return el
+}
+
+/** 停止当前 voice（不会触发 onEnded / onError）；幂等，无正在播放时是 no-op */
+function stopVoice() {
+  const el = voiceEl
+  voiceEl = null
+  voiceToken++ // 作废所有 pending 回调，避免旧 audio 的 ended/error 污染新一轮
+  if (!el) return
+  try {
+    el.pause()
+  } catch {
+    /* noop */
+  }
+}
+
 export const AudioEngine = {
   ac,
   blip,
@@ -289,6 +343,8 @@ export const AudioEngine = {
   stop,
   ambient,
   stopAmbient,
+  playVoice,
+  stopVoice,
   get playing() {
     return playing
   },

@@ -29,7 +29,7 @@ export default function SpriteScene({ active, onPick, onDone }: Props) {
 
   useEffect(() => {
     if (!active) return
-    void new Audio('/youyu/sao1.mp3').play().catch(() => {})
+    AudioEngine.playVoice('/youyu/sao1.mp3')
   }, [active])
 
   // 离开该场景时清理未触发的延时
@@ -41,8 +41,8 @@ export default function SpriteScene({ active, onPick, onDone }: Props) {
     pickRef.current(key)
     const sp = SPRITES[key]
     AudioEngine.chime(660)
-    // 播放预生成 TTS 音频，用真实时长控制场景跳转
-    const audio = new Audio(sp.audio)
+    // 预生成 TTS 回应音走 playVoice 单实例通道，上一条（包括刚进场的 sao1）会被自动顶掉；
+    // ended / error 任一触发都走 onEnd：真实时长控场景跳转，播放失败时回退到定时兜底。
     const onEnd = () => {
       bagRef.current?.clear()
       const bag = createTimerBag()
@@ -52,11 +52,7 @@ export default function SpriteScene({ active, onPick, onDone }: Props) {
         if (activeRef.current) doneRef.current()
       }, 1200)
     }
-    audio.addEventListener('ended', onEnd, { once: true })
-    audio.play().catch(() => {
-      // 播放失败时回退到预估时长
-      onEnd()
-    })
+    AudioEngine.playVoice(sp.audio, { onEnded: onEnd, onError: onEnd })
   }
 
   const sp = picked ? SPRITES[picked] : null

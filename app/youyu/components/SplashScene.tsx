@@ -197,7 +197,7 @@ export default function SplashScene({ active, idle, onEegComplete }: Props) {
       for (let i = 0; i < 5; i++) bag.later(() => setBarsOn(i + 1), i * 140)
       setHint('✦ 连接成功')
       AudioEngine.chime(660)
-      void new Audio('/youyu/nao1.mp3').play().catch(() => {})
+      AudioEngine.playVoice('/youyu/nao1.mp3')
     }, 5200)
     bag.later(() => {
       setEegOn(true)
@@ -210,7 +210,7 @@ export default function SplashScene({ active, idle, onEegComplete }: Props) {
         setEegSec(left)
         if (sec <= 0) {
           window.clearInterval(iv)
-          void new Audio('/youyu/nao2.mp3').play().catch(() => {})
+          AudioEngine.playVoice('/youyu/nao2.mp3')
           bag.later(() => completeRef.current(), 2200)
         }
       }, 1000)
